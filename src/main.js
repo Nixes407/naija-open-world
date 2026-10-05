@@ -1,0 +1,184 @@
+import { Renderer } from './core/Renderer.js';
+import { InputManager } from './core/InputManager.js';
+import { CharacterController } from './player/CharacterController.js';
+import { TimeSystem } from './world/TimeSystem.js';
+
+/**
+ * main.js
+ * ---------------------------------------------------------------------------
+ * Naija Open World - Sprint 1 entry point.
+ *
+ * Wires the four systems together and runs the frame loop in a fixed order:
+ *   time -> input/player physics -> camera -> environment -> render -> HUD
+ */
+
+/* -------------------------------------------------------------------------- */
+/* DOM                                                                         */
+/* -------------------------------------------------------------------------- */
+
+const canvas = document.getElementById('game-canvas');
+const overlay = document.getElementById('overlay');
+const hudTime = document.getElementById('hud-time');
+const hudPhase = document.getElementById('hud-phase');
+const hudDay = document.getElementById('hud-day');
+const hudFps = document.getElementById('hud-fps');
+const hudStats = document.getElementById('hud-stats');
+
+/* -------------------------------------------------------------------------- */
+/* Systems                                                                     */
+/* -------------------------------------------------------------------------- */
+
+const renderer = new Renderer(canvas);
+const input = new InputManager(canvas);
+const time = new TimeSystem({ startHour: 6, timeScale: 1 });
+const player = new CharacterController({ renderer, input });
+
+// Debug handle from the browser console:
+//   Naija.time.setHours(18.4)   - jump to sunset
+//   Naija.player.respawn(20, 20)
+//   Naija.renderer.setQualityTier(0)
+window.Naija = { renderer, input, time, player };
+
+/* -------------------------------------------------------------------------- */
+/* Resize                                                                      */
+/* -------------------------------------------------------------------------- */
+
+window.addEventListener('resize', () => renderer.resize());
+window.addEventListener('orientationchange', () => renderer.resize());
+
+/* -------------------------------------------------------------------------- */
+/* Pointer lock / start overlay                                                */
+/* -------------------------------------------------------------------------- */
+
+function startPlaying() {
+  overlay.classList.add('hidden');
+  input.requestPointerLock();
+}
+
+overlay.addEventListener('click', startPlaying);
+canvas.addEventListener('click', startPlaying);
+
+document.addEventListener('pointerlockchange', () => {
+  const locked = document.pointerLockElement === canvas;
+  overlay.classList.toggle('hidden', locked);
+});
+
+window.addEventListener('keydown', (event) => {
+  if (event.code === 'Escape') overlay.classList.remove('hidden');
+  if (event.code === 'KeyR') player.respawn(0, 0);
+  if (event.code === 'KeyT') {
+    console.info(`[Naija] Time speed x${time.cycleTimeScale()}`);
+  }
+});
+
+/* -------------------------------------------------------------------------- */
+/* HUD                                                                         */
+/* -------------------------------------------------------------------------- */
+
+const FPS_SAMPLE_SECONDS = 0.5;
+let fpsAccumulator = 0;
+let fpsFrames = 0;
+let hudAccumulator = 0;
+
+/**
+ * Adaptive quality: the game targets 60fps and must never sit under 30fps.
+ * When the measured framerate stays low the renderer steps down a quality tier
+ * (shadow resolution, then resolution scale, then shadows off) and steps back
+ * up again once there is headroom.
+ */
+const quality = {
+  smoothedFps: 60,
+  cooldown: 3,
+};
+
+function updateFps(dt) {
+  fpsAccumulator += dt;
+  fpsFrames += 1;
+  if (fpsAccumulator < FPS_SAMPLE_SECONDS) return;
+
+  const fps = fpsFrames / fpsAccumulator;
+  fpsAccumulator = 0;
+  fpsFrames = 0;
+
+  quality.smoothedFps = quality.smoothedFps * 0.5 + fps * 0.5;
+  quality.cooldown -= FPS_SAMPLE_SECONDS;
+  if (quality.cooldown > 0) return;
+
+  const lastTier = Renderer.QUALITY_TIERS.length - 1;
+  if (quality.smoothedFps < 45 && renderer.qualityTier < lastTier) {
+    renderer.setQualityTier(renderer.qualityTier + 1);
+    quality.cooldown = 3;
+    console.info(`[Naija] Quality -> ${renderer.quality} (${quality.smoothedFps.toFixed(0)} fps)`);
+  } else if (quality.smoothedFps > 58 && renderer.qualityTier > 0) {
+    renderer.setQualityTier(renderer.qualityTier - 1);
+    quality.cooldown = 10;
+    console.info(`[Naija] Quality -> ${renderer.quality} (${quality.smoothedFps.toFixed(0)} fps)`);
+  }
+}
+
+function updateClockHud(dt) {
+  hudAccumulator += dt;
+  if (hudAccumulator < 0.25) return; // ~4 updates a second is plenty
+  hudAccumulator = 0;
+
+  hudTime.textContent = time.formatTime();
+  hudPhase.textContent = time.phase;
+  hudDay.textContent = `Day ${time.day}`;
+  hudStats.innerHTML = `<b>${Math.round(quality.smoothedFps)}</b> fps &middot; ${renderer.quality}`;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Frame loop                                                                  */
+/* -------------------------------------------------------------------------- */
+
+let lastTime = performance.now();
+
+function frame(now) {
+  requestAnimationFrame(frame);
+
+  // Clamp dt so a backgrounded tab or a slow frame cannot teleport the player.
+  const dt = Math.min((now - lastTime) / 1000, 0.1);
+  lastTime = now;
+
+  // 1. World clock.
+  time.update(dt);
+  const env = time.environment();
+
+  // 2. Player: input -> physics -> capsule transform -> third-person camera.
+  player.update(dt, env);
+
+  // 3. Sky, fog, sun, stars, shadows all follow the sun's position.
+  renderer.updateEnvironment(env, player.position);
+
+  // 4. Draw.
+  renderer.render();
+
+  // 5. HUD + per-frame input bookkeeping.
+  updateFps(dt);
+  updateClockHud(dt);
+  input.endFrame();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Boot                                                                        */
+/* -------------------------------------------------------------------------- */
+
+function boot() {
+  renderer.resize();
+  renderer.updateEnvironment(time.environment(), player.position);
+
+  hudTime.textContent = time.formatTime();
+  hudPhase.textContent = time.phase;
+  hudDay.textContent = `Day ${time.day}`;
+
+  canvas.focus();
+  requestAnimationFrame(frame);
+
+  console.info(
+    '%cNaija Open World%c Sprint 1 - Lagos prototype ready. Click the world to capture the mouse.',
+    'color:#FFD700;font-weight:bold',
+    'color:inherit',
+  );
+}
+
+boot();
