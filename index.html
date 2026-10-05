@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="Naija Open World - an open-world game set in Lagos, Nigeria." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23C2956C'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%23FFD700'/%3E%3C/svg%3E" />
+    <title>Naija Open World &middot; Lagos</title>
+    <style>
+      :root {
+        --soil: #c2956c;
+        --danfo: #ffd700;
+        --panel: rgba(10, 10, 46, 0.55);
+        --panel-border: rgba(255, 215, 0, 0.35);
+        --text: #f6efe4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #0a0a2e;
+        color: var(--text);
+        font-family: 'Segoe UI', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #app {
+        position: fixed;
+        inset: 0;
+      }
+
+      #game-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        outline: none;
+        cursor: crosshair;
+        touch-action: none;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* HUD                                                                 */
+      /* ------------------------------------------------------------------ */
+      #hud {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      }
+
+      /* Clock: top-left corner, as specified. */
+      #hud-clock {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        padding: 10px 16px 12px;
+        min-width: 172px;
+      }
+
+      #hud-clock .label {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        opacity: 0.7;
+      }
+
+      #hud-time {
+        font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+        font-size: 30px;
+        font-weight: 600;
+        line-height: 1.1;
+        color: var(--danfo);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+        font-variant-numeric: tabular-nums;
+      }
+
+      #hud-meta {
+        display: flex;
+        gap: 10px;
+        margin-top: 4px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        opacity: 0.85;
+      }
+
+      #hud-phase {
+        color: #ffb066;
+      }
+
+      #hud-stats {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        padding: 6px 10px;
+        font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', monospace;
+        font-size: 11px;
+        opacity: 0.85;
+        text-align: right;
+      }
+
+      #hud-stats b {
+        color: var(--danfo);
+        font-weight: 600;
+      }
+
+      #hud-hint {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        padding: 8px 12px;
+        font-size: 11px;
+        line-height: 1.7;
+        letter-spacing: 0.04em;
+        opacity: 0.85;
+        max-width: 320px;
+      }
+
+      #hud-hint kbd {
+        display: inline-block;
+        min-width: 18px;
+        padding: 1px 5px;
+        margin-right: 3px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-family: inherit;
+        font-size: 10px;
+        text-align: center;
+      }
+
+      #hud-hint .row {
+        opacity: 0.9;
+      }
+
+      /* ------------------------------------------------------------------ */
+      /* Start / resume overlay                                              */
+      /* ------------------------------------------------------------------ */
+      #overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        text-align: center;
+        background: radial-gradient(circle at 50% 45%, rgba(10, 10, 46, 0.35), rgba(4, 4, 20, 0.82));
+        cursor: pointer;
+        transition: opacity 220ms ease;
+      }
+
+      #overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #overlay h1 {
+        margin: 0;
+        font-size: clamp(28px, 5vw, 54px);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      #overlay h1 span {
+        color: var(--danfo);
+      }
+
+      #overlay .sub {
+        margin: 0;
+        font-size: 13px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        opacity: 0.75;
+      }
+
+      #overlay .cta {
+        margin-top: 10px;
+        padding: 12px 26px;
+        border-radius: 999px;
+        border: 1px solid var(--panel-border);
+        background: rgba(255, 215, 0, 0.14);
+        color: var(--danfo);
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        animation: pulse 2.2s ease-in-out infinite;
+      }
+
+      #overlay .controls {
+        font-size: 12px;
+        line-height: 2;
+        opacity: 0.8;
+      }
+
+      #overlay code {
+        color: var(--danfo);
+        font-family: 'SFMono-Regular', 'Consolas', monospace;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+        }
+        50% {
+          transform: scale(1.035);
+          box-shadow: 0 0 26px rgba(255, 215, 0, 0.22);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #overlay .cta {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas" tabindex="0"></canvas>
+
+      <div id="hud">
+        <div id="hud-clock" class="panel">
+          <div class="label">Lagos &middot; In-game time</div>
+          <div id="hud-time">06:00 AM</div>
+          <div id="hud-meta">
+            <span id="hud-phase">Dawn</span>
+            <span id="hud-day">Day 1</span>
+          </div>
+        </div>
+
+        <div id="hud-stats" class="panel">
+          <b id="hud-fps">--</b> fps
+        </div>
+
+        <div id="hud-hint" class="panel">
+          <div class="row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &middot; <kbd>Shift</kbd> sprint &middot; <kbd>Space</kbd> jump</div>
+          <div class="row"><kbd>Mouse</kbd> look (click the world to capture the cursor)</div>
+          <div class="row"><kbd>Wheel</kbd> zoom &middot; <kbd>T</kbd> time speed &middot; <kbd>R</kbd> respawn</div>
+        </div>
+      </div>
+
+      <div id="overlay">
+        <p class="sub">Sprint 1 &middot; Prototype</p>
+        <h1>Naija <span>Open World</span></h1>
+        <p class="sub">Lagos, Nigeria &middot; 500m &times; 500m</p>
+        <div class="controls">
+          <div><code>W A S D</code> move &nbsp;&middot;&nbsp; <code>Mouse</code> look &nbsp;&middot;&nbsp; <code>Space</code> jump</div>
+          <div>A full day/night cycle passes every 24 real minutes.</div>
+        </div>
+        <div class="cta">Click to play</div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
