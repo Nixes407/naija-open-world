@@ -21,6 +21,21 @@ import { TimeSystem } from './world/TimeSystem.js';
 const canvas = document.getElementById('game-canvas');
 const overlay = document.getElementById('overlay');
 const hudTime = document.getElementById('hud-time');
+
+// Hide desktop clock on mobile -
+// MobileControls time chip takes over
+if ('ontouchstart' in window ||
+     navigator.maxTouchPoints > 0) {
+  const desktopClock = hudTime;
+  if (desktopClock) {
+    desktopClock.style.display = 'none';
+    // The clock's panel (label + phase/day row) would otherwise sit directly
+    // under the MENU / MAP buttons, which are pinned to the same corner.
+    const desktopClockPanel = desktopClock.closest('#hud-clock');
+    if (desktopClockPanel) desktopClockPanel.style.display = 'none';
+  }
+}
+
 const hudPhase = document.getElementById('hud-phase');
 const hudDay = document.getElementById('hud-day');
 const hudFps = document.getElementById('hud-fps');
