@@ -7,6 +7,7 @@ import WaterSystem from './world/WaterSystem.js';
 import Landmarks  from './world/Landmarks.js';
 import StreetFurniture from './world/StreetFurniture.js';
 import AmbientDetails  from './world/AmbientDetails.js';
+import CollisionSystem from './world/CollisionSystem.js';
 import { Renderer } from './core/Renderer.js';
 import { InputManager } from './core/InputManager.js';
 import { CharacterController } from './player/CharacterController.js';
@@ -114,6 +115,21 @@ const ambientDetails = new AmbientDetails(
   renderer.scene
 );
 ambientDetails.build(CITY_CONFIG);
+
+// ── Collision system ──
+// Must come AFTER the player: it adds its static colliders to the player's
+// own CANNON.World (CharacterController exposes it as the public `.world`),
+// and after every visual build so the collider positions can be derived from
+// the same CITY_CONFIG the world modules were built with.
+const collisionSystem = new CollisionSystem(
+  player.world
+);
+collisionSystem.buildCityColliders(CITY_CONFIG);
+collisionSystem.buildLandmarkColliders({
+  cityOffsetX: 0,
+  cityOffsetZ: 0,
+});
+collisionSystem.buildWorldBoundaries(250);
 
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
