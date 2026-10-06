@@ -63,8 +63,13 @@ const orientationGuard = new OrientationGuard();
 orientationGuard.startListening();
 
 // Self-contained: builds its own top-centre toggle button and listens for
-// fullscreenchange to keep the icon in sync.
-const fullscreen = new FullscreenManager();
+// fullscreenchange to keep the icon in sync. It also receives the
+// orientationGuard so it can request the landscape lock the moment the page
+// actually enters fullscreen - lock() only succeeds from fullscreen, which is
+// what makes Android auto-rotate work.
+const fullscreen = new FullscreenManager(
+  orientationGuard
+);
 
 // ── Build Lagos city ──
 const CITY_CONFIG = {

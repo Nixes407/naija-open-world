@@ -1,5 +1,6 @@
 export default class FullscreenManager {
-  constructor() {
+  constructor(orientationGuard = null) {
+    this._guard = orientationGuard;
     this._buildButton();
     this._attachEvents();
   }
@@ -47,11 +48,25 @@ export default class FullscreenManager {
     );
 
     // Update icon when fullscreen changes
+    const onFSChange = () => {
+      this._updateIcon();
+      // After entering fullscreen, request
+      // landscape lock — this is when it works
+      if (this.isFullscreen() && this._guard) {
+        if (screen.orientation && 
+            screen.orientation.lock) {
+          screen.orientation.lock('landscape')
+            .catch(() => {
+              // Still fails on iOS — expected
+            });
+        }
+      }
+    };
     document.addEventListener(
-      'fullscreenchange', () => this._updateIcon()
+      'fullscreenchange', onFSChange
     );
     document.addEventListener(
-      'webkitfullscreenchange', () => this._updateIcon()
+      'webkitfullscreenchange', onFSChange
     );
   }
 
