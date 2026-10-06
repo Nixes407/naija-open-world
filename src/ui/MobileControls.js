@@ -37,6 +37,9 @@ export default class MobileControls {
       },
     };
 
+    // Timer IDs for cancelling stale context fades
+    this._contextTimers = {};
+
     // Internal state
     this._moveX   = 0;
     this._moveY   = 0;
@@ -397,14 +400,20 @@ export default class MobileControls {
     if (!this._contexts[name]) return;
     if (this._context === name) return;
     this._context = name;
-
     const cfg = this._contexts[name];
     Object.entries(cfg).forEach(([id, vals]) => {
       const btn = this.buttons?.[id];
       if (!btn) return;
-
+      // Cancel any pending fade for this button
+      if (this._contextTimers[id]) {
+        clearTimeout(this._contextTimers[id]);
+        this._contextTimers[id] = null;
+      }
+      // Fade out
       btn.style.opacity = '0';
-      setTimeout(() => {
+      // Update after fade, store timer id
+      this._contextTimers[id] = setTimeout(() => {
+        this._contextTimers[id] = null;
         btn.textContent      = vals.label;
         btn.style.background = vals.color;
         btn.style.opacity    = '1';
