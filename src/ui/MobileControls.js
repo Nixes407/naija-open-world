@@ -3,6 +3,40 @@ export default class MobileControls {
     this.active = 'ontouchstart' in window ||
                   navigator.maxTouchPoints > 0;
 
+    // Context definitions
+    this._contexts = {
+      default: {
+        btnA: { label: '⚡ ACT',   color: '#FFD700' },
+        btnB: { label: '↑ JUMP',  color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN',  color: 'rgba(255,255,255,0.5)' },
+      },
+      nearNPC: {
+        btnA: { label: '💬 TALK',   color: '#FFD700' },
+        btnB: { label: '✕ CANCEL', color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN',   color: 'rgba(255,255,255,0.5)' },
+      },
+      nearVehicle: {
+        btnA: { label: '🚐 ENTER', color: '#FFD700' },
+        btnB: { label: '↑ JUMP',  color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN',  color: 'rgba(255,255,255,0.5)' },
+      },
+      driving: {
+        btnA: { label: '🚪 EXIT',  color: '#FF4444' },
+        btnB: { label: '📯 HORN',  color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '🔄 BRAKE', color: 'rgba(255,165,0,0.8)' },
+      },
+      nearDoor: {
+        btnA: { label: '🚪 ENTER', color: '#FFD700' },
+        btnB: { label: '↑ JUMP',  color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN',  color: 'rgba(255,255,255,0.5)' },
+      },
+      nearMarket: {
+        btnA: { label: '🛒 BUY',  color: '#00CC66' },
+        btnB: { label: '↑ JUMP', color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN', color: 'rgba(255,255,255,0.5)' },
+      },
+    };
+
     // Internal state
     this._moveX   = 0;
     this._moveY   = 0;
@@ -116,7 +150,7 @@ export default class MobileControls {
         userSelect:   'none',
         cursor:       'pointer',
         boxShadow:    '0 2px 8px rgba(0,0,0,0.5)',
-        transition:   'opacity 0.2s, transform 0.1s',
+        transition:   'opacity 0.2s ease, transform 0.1s ease, background 0.2s ease',
         textAlign:    'center',
         lineHeight:   '1.2',
         padding:      '4px',
@@ -276,7 +310,23 @@ export default class MobileControls {
   }
 
   setContext(name) {
+    if (!this.active) return;
+    if (!this._contexts[name]) return;
+    if (this._context === name) return;
     this._context = name;
+
+    const cfg = this._contexts[name];
+    Object.entries(cfg).forEach(([id, vals]) => {
+      const btn = this.buttons?.[id];
+      if (!btn) return;
+
+      btn.style.opacity = '0';
+      setTimeout(() => {
+        btn.textContent      = vals.label;
+        btn.style.background = vals.color;
+        btn.style.opacity    = '1';
+      }, 200);
+    });
   }
 
   isActive() {
