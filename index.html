@@ -265,6 +265,49 @@
         -webkit-user-select: none;
         user-select: none;
       }
+
+      /* Mobile HUD scaling */
+      @media (max-width: 900px) and (orientation: landscape) {
+
+        /* Scale up all HUD text for readability.
+           Explicit px: every element inside #hud sets an absolute
+           font-size, so a relative value on #hud is never inherited. */
+        #hud-time   { font-size: 36px !important; }
+        #hud-meta   { font-size: 13px !important; }
+        #hud-stats  { font-size: 13px !important; }
+        #hud-hint   { display:   none !important; }
+
+        /* Ensure canvas fills landscape screen exactly */
+        canvas {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+        }
+
+        /* Move FPS counter so it does not overlap 
+           with mobile top buttons.
+           #hud-stats is the positioned panel that actually holds the fps
+           readout - [id*="fps"] only matches the inner, unpositioned <b>,
+           where top/left would be ignored.
+           13px matches the #hud-stats rule above; leaving 11px here would
+           win on source order (same specificity) and undo it. */
+        #fps, .fps-counter, [id*="fps"], #hud-stats {
+          top: 60px !important;
+          left: 12px !important;
+          font-size: 13px !important;
+        }
+      }
+
+      /* Sunlight readable text contrast */
+      @media (max-width: 900px) {
+        #hud * {
+          text-shadow: 
+            1px 1px 3px rgba(0,0,0,0.9),
+            0 0 6px rgba(0,0,0,0.7) !important;
+        }
+      }
     </style>
   </head>
   <body oncontextmenu="return false;">

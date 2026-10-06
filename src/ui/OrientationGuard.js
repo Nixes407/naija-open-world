@@ -142,7 +142,35 @@ export default class OrientationGuard {
 
     this.update();
 
-    window.addEventListener('resize', () => this.update());
+    // Attempt real OS-level landscape lock
+
+    // (works on Android Chrome, silently fails
+
+    //  elsewhere — that is expected behaviour)
+
+    if (this.isMobile() && screen.orientation 
+
+        && screen.orientation.lock) {
+
+      screen.orientation.lock('landscape')
+
+        .catch(() => {
+
+          // Lock not supported or not in 
+
+          // fullscreen — CSS fallback handles it
+
+        });
+
+    }
+
+    // CSS fallback listeners
+
+    window.addEventListener('resize', 
+
+      () => this.update()
+
+    );
 
     if (screen.orientation) {
 

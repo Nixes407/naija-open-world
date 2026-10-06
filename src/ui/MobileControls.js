@@ -3,6 +3,43 @@ export default class MobileControls {
     this.active = 'ontouchstart' in window ||
                   navigator.maxTouchPoints > 0;
 
+    // Context definitions
+    this._contexts = {
+      default: {
+        btnA: { label: '⚡ ACT',   color: '#FFD700' },
+        btnB: { label: '↑ JUMP',  color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN',  color: 'rgba(255,255,255,0.5)' },
+      },
+      nearNPC: {
+        btnA: { label: '💬 TALK',   color: '#FFD700' },
+        btnB: { label: '✕ CANCEL', color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN',   color: 'rgba(255,255,255,0.5)' },
+      },
+      nearVehicle: {
+        btnA: { label: '🚐 ENTER', color: '#FFD700' },
+        btnB: { label: '↑ JUMP',  color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN',  color: 'rgba(255,255,255,0.5)' },
+      },
+      driving: {
+        btnA: { label: '🚪 EXIT',  color: '#FF4444' },
+        btnB: { label: '📯 HORN',  color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '🔄 BRAKE', color: 'rgba(255,165,0,0.8)' },
+      },
+      nearDoor: {
+        btnA: { label: '🚪 ENTER', color: '#FFD700' },
+        btnB: { label: '↑ JUMP',  color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN',  color: 'rgba(255,255,255,0.5)' },
+      },
+      nearMarket: {
+        btnA: { label: '🛒 BUY',  color: '#00CC66' },
+        btnB: { label: '↑ JUMP', color: 'rgba(255,255,255,0.7)' },
+        btnC: { label: '▶▶ RUN', color: 'rgba(255,255,255,0.5)' },
+      },
+    };
+
+    // Timer IDs for cancelling stale context fades
+    this._contextTimers = {};
+
     // Internal state
     this._moveX   = 0;
     this._moveY   = 0;
@@ -76,6 +113,7 @@ export default class MobileControls {
     this.root.appendChild(this.joystickOuter);
     this._buildButtons();
     this._buildLookZone();
+    this._buildTopButtons();
   }
 
   _buildButtons() {
@@ -116,7 +154,7 @@ export default class MobileControls {
         userSelect:   'none',
         cursor:       'pointer',
         boxShadow:    '0 2px 8px rgba(0,0,0,0.5)',
-        transition:   'opacity 0.2s, transform 0.1s',
+        transition:   'opacity 0.2s ease, transform 0.1s ease, background 0.2s ease',
         textAlign:    'center',
         lineHeight:   '1.2',
         padding:      '4px',
@@ -194,6 +232,88 @@ export default class MobileControls {
     }, { passive: true });
 
     this.root.appendChild(this.lookZone);
+  }
+
+  _buildTopButtons() {
+    const makeTopBtn = (label, extraStyles) => {
+      const btn = document.createElement('div');
+      Object.assign(btn.style, {
+        position:       'fixed',
+        width:          '40px',
+        height:         '40px',
+        borderRadius:   '8px',
+        background:     'rgba(0,0,0,0.55)',
+        border:         '1px solid rgba(255,255,255,0.25)',
+        color:          '#FFD700',
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'center',
+        fontSize:       '10px',
+        fontFamily:     'Arial, sans-serif',
+        fontWeight:     'bold',
+        pointerEvents:  'auto',
+        touchAction:    'none',
+        userSelect:     'none',
+        cursor:         'pointer',
+        textAlign:      'center',
+        lineHeight:     '1.2',
+        zIndex:         '1001',
+        ...extraStyles,
+      });
+      btn.textContent = label;
+      return btn;
+    };
+
+    this.btnMenu = makeTopBtn('≡\nMENU', {
+      top:  '12px',
+      left: '12px',
+    });
+    this.btnMenu.addEventListener('touchstart', e => {
+      e.preventDefault();
+      window.dispatchEvent(
+        new CustomEvent('naija:togglePause')
+      );
+    }, { passive: false });
+
+    this.btnMap = makeTopBtn('🗺\nMAP', {
+      top:  '12px',
+      left: '60px',
+    });
+    this.btnMap.addEventListener('touchstart', e => {
+      e.preventDefault();
+      window.dispatchEvent(
+        new CustomEvent('naija:toggleMap')
+      );
+    }, { passive: false });
+
+    this.timeChip = document.createElement('div');
+    Object.assign(this.timeChip.style, {
+      position:       'fixed',
+      top:            '12px',
+      right:          '12px',
+      padding:        '6px 12px',
+      borderRadius:   '20px',
+      background:     'rgba(0,0,0,0.55)',
+      border:         '1px solid rgba(255,255,255,0.25)',
+      color:          '#FFD700',
+      fontFamily:     'Arial, sans-serif',
+      fontSize:       '13px',
+      fontWeight:     'bold',
+      pointerEvents:  'none',
+      userSelect:     'none',
+      zIndex:         '1001',
+    });
+    this.timeChip.textContent = '00:00 AM';
+
+    this.root.appendChild(this.btnMenu);
+    this.root.appendChild(this.btnMap);
+    this.root.appendChild(this.timeChip);
+  }
+
+  updateTimeDisplay(timeString) {
+    if (this.timeChip) {
+      this.timeChip.textContent = timeString;
+    }
   }
 
   // ── Touch events ──────────────────────────────
@@ -276,7 +396,29 @@ export default class MobileControls {
   }
 
   setContext(name) {
+    if (!this.active) return;
+    if (!this._contexts[name]) return;
+    if (this._context === name) return;
     this._context = name;
+    const cfg = this._contexts[name];
+    Object.entries(cfg).forEach(([id, vals]) => {
+      const btn = this.buttons?.[id];
+      if (!btn) return;
+      // Cancel any pending fade for this button
+      if (this._contextTimers[id]) {
+        clearTimeout(this._contextTimers[id]);
+        this._contextTimers[id] = null;
+      }
+      // Fade out
+      btn.style.opacity = '0';
+      // Update after fade, store timer id
+      this._contextTimers[id] = setTimeout(() => {
+        this._contextTimers[id] = null;
+        btn.textContent      = vals.label;
+        btn.style.background = vals.color;
+        btn.style.opacity    = '1';
+      }, 200);
+    });
   }
 
   isActive() {

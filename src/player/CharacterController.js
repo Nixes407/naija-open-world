@@ -41,11 +41,21 @@ export class CharacterController {
    * @param {object} options
    * @param {import('../core/Renderer.js').Renderer} options.renderer
    * @param {import('../core/InputManager.js').InputManager} options.input
+   * @param {import('../ui/MobileControls.js').default} [options.mobileControls]
+   *   touch controls; when omitted (or inactive) the keyboard/mouse input wins
    */
-  constructor({ renderer, input }) {
+  constructor({ renderer, input, mobileControls = null }) {
     this.renderer = renderer;
     this.input = input;
     this.scene = renderer.scene;
+    this._mobile = mobileControls;
+
+    // Proximity context detection
+    this._lastContext = 'default';
+    // No vehicles exist yet, so nothing flips this to true during play.
+    // VehicleSystem will own it in a later sprint; until then it is a stub
+    // that can be driven directly (see setInVehicle below).
+    this._inVehicle = false;
 
     /* ---------------------------------------------------------------------- */
     /* Visual: danfo-yellow capsule                                            */
@@ -217,17 +227,39 @@ export class CharacterController {
    * @param {object} [env] environment snapshot from the TimeSystem (sprint hook)
    */
   update(dt, env) {
-    this._updateLook(dt);
-    this._updateMovement(dt, env);
+    // Mobile input override: read the touch state once per frame. This also
+    // consumes the joystick/look accumulators, so it must happen exactly once
+    // per frame (see MobileControls.getMobileInput).
+    let mobileInput = null;
+    if (this._mobile && this._mobile.isActive()) {
+      mobileInput = this._mobile.getMobileInput();
+    }
+
+    this._updateLook(dt, mobileInput);
+    this._updateMovement(dt, env, mobileInput);
     this._updateCamera(dt);
+
+    this._updateMobileContext();
   }
 
-  _updateLook(dt) {
+  _updateLook(dt, mobileInput = null) {
     const mouse = this.input.consumeLookDelta();
     const keyboardYaw = this.input.getLookAxis() * 1.8 * dt; // Q / E
 
     this.yaw += mouse.yaw + keyboardYaw;
     this.pitch = THREE.MathUtils.clamp(this.pitch + mouse.pitch, this.minPitch, this.maxPitch);
+
+    // Touch look (right-hand drag zone). Same sign convention as the mouse
+    // above: dragging right / down turns the camera the same way it does with
+    // pointer lock. MobileControls already scales the deltas.
+    if (mobileInput) {
+      this.yaw -= mobileInput.lookDeltaX;
+      this.pitch = THREE.MathUtils.clamp(
+        this.pitch - mobileInput.lookDeltaY,
+        this.minPitch,
+        this.maxPitch,
+      );
+    }
 
     // Wheel zooms the third-person camera.
     const wheel = this.input.consumeWheel();
@@ -240,10 +272,31 @@ export class CharacterController {
     }
   }
 
-  _updateMovement(dt) {
+  _updateMovement(dt, env, mobileInput = null) {
     const body = this.body;
-    const move = this.input.getMoveVector();
-    const speed = this.input.sprinting ? SPRINT_SPEED : WALK_SPEED;
+
+    // Input source: the touch controls when they are live, keyboard/mouse
+    // otherwise. Only the *reading* differs - every line of physics below
+    // (velocity blending, MAX_GROUND_SPEED clamp, jump latch, mesh sync) is
+    // shared, so touch and keyboard produce exactly the same motion.
+    let move;
+    let sprinting;
+    let jumpPressed;
+
+    if (mobileInput) {
+      // Joystick: moveY is negative pushing forward (up the screen) and moveX
+      // is positive strafing right, which is the same convention
+      // InputManager.getMoveVector() uses for WASD.
+      move = { x: mobileInput.moveX, z: mobileInput.moveY };
+      sprinting = mobileInput.sprint;
+      jumpPressed = mobileInput.jump;
+    } else {
+      move = this.input.getMoveVector();
+      sprinting = this.input.sprinting;
+      jumpPressed = this.input.wantsJump;
+    }
+
+    const speed = sprinting ? SPRINT_SPEED : WALK_SPEED;
 
     // Camera-relative movement on the ground plane.
     this._cameraForward.set(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
@@ -260,11 +313,11 @@ export class CharacterController {
     // `groundContact` comes from the previous physics step (see
     // _updateGroundContact) - one frame of latency, which is imperceptible and
     // keeps jumping responsive because the impulse is applied before the step.
-    const wantsJump = this.input.wantsJump && !this._jumpLatch;
+    const wantsJump = jumpPressed && !this._jumpLatch;
     if (wantsJump && this.groundContact) {
       body.velocity.y = JUMP_SPEED;
       this._jumpLatch = true;
-    } else if (!this.input.wantsJump) {
+    } else if (!jumpPressed) {
       this._jumpLatch = false;
     }
 
@@ -307,6 +360,27 @@ export class CharacterController {
 
     // Small lean while airborne so jumps read visually.
     this.mesh.rotation.x = this.groundContact ? 0 : THREE.MathUtils.clamp(body.velocity.y * 0.01, -0.1, 0.1);
+  }
+
+  _updateMobileContext() {
+    if (!this._mobile || !this._mobile.isActive()) return;
+
+    // Default context unless something is nearby
+    let context = 'default';
+
+    // We will do real proximity checks in a later sprint when NPCs and
+    // vehicles exist. For now: detect if player is "driving" by checking
+    // if a vehicle body is active.
+    if (this._inVehicle) {
+      context = 'driving';
+    }
+
+    // Only call setContext if context changed (avoids triggering the fade
+    // animation every frame).
+    if (context !== this._lastContext) {
+      this._lastContext = context;
+      this._mobile.setContext(context);
+    }
   }
 
   /**
@@ -386,6 +460,22 @@ export class CharacterController {
     this.body.force.set(0, 0, 0);
     this.body.position.set(x, CENTER_HEIGHT + 0.05, z);
     this._firstFrame = true;
+  }
+
+  /**
+   * Marks the player as driving / on foot. This is what drives the mobile
+   * button context ('driving' vs 'default'); the future VehicleSystem is
+   * expected to call it on enter/exit. Reachable from the console too:
+   *   Naija.player.setInVehicle(true)
+   * No-op for the context until a context actually exists (i.e. no
+   * behaviour change on desktop).
+   */
+  setInVehicle(flag) {
+    this._inVehicle = Boolean(flag);
+  }
+
+  get inVehicle() {
+    return this._inVehicle;
   }
 
   get position() {
