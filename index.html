@@ -254,10 +254,15 @@
       #orientation-guard { display: none; }
 
       @media (max-width: 768px) and (orientation: portrait) {
-        canvas { display: none !important; }
-        #hud { display: none !important; }
-        #overlay { display: none !important; }
-        #orientation-guard { display: flex !important; }
+        /*
+         * Soft rules only — no !important.
+         * OrientationGuard JS controls visibility
+         * dynamically. !important would block JS
+         * from hiding the overlay after auto-lock
+         * or soft-hint dismissal.
+         */
+        canvas { display: none; }
+        #hud   { display: none; }
       }
 
       @media (max-width: 768px) and (orientation: landscape) {
