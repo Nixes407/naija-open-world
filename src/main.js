@@ -4,6 +4,8 @@ import WorldBuilder from './world/WorldBuilder.js';
 import RoadNetwork  from './world/RoadNetwork.js';
 import WaterSystem from './world/WaterSystem.js';
 import Landmarks  from './world/Landmarks.js';
+import StreetFurniture from './world/StreetFurniture.js';
+import AmbientDetails  from './world/AmbientDetails.js';
 import { Renderer } from './core/Renderer.js';
 import { InputManager } from './core/InputManager.js';
 import { CharacterController } from './player/CharacterController.js';
@@ -92,6 +94,16 @@ landmarks.build({
   cityOffsetX: 0,
   cityOffsetZ: 0,
 });
+
+const streetFurniture = new StreetFurniture(
+  renderer.scene
+);
+streetFurniture.build(CITY_CONFIG);
+
+const ambientDetails = new AmbientDetails(
+  renderer.scene
+);
+ambientDetails.build(CITY_CONFIG);
 
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
