@@ -110,6 +110,7 @@ export default class MobileControls {
     this.root.appendChild(this.joystickOuter);
     this._buildButtons();
     this._buildLookZone();
+    this._buildTopButtons();
   }
 
   _buildButtons() {
@@ -228,6 +229,88 @@ export default class MobileControls {
     }, { passive: true });
 
     this.root.appendChild(this.lookZone);
+  }
+
+  _buildTopButtons() {
+    const makeTopBtn = (label, extraStyles) => {
+      const btn = document.createElement('div');
+      Object.assign(btn.style, {
+        position:       'fixed',
+        width:          '40px',
+        height:         '40px',
+        borderRadius:   '8px',
+        background:     'rgba(0,0,0,0.55)',
+        border:         '1px solid rgba(255,255,255,0.25)',
+        color:          '#FFD700',
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'center',
+        fontSize:       '10px',
+        fontFamily:     'Arial, sans-serif',
+        fontWeight:     'bold',
+        pointerEvents:  'auto',
+        touchAction:    'none',
+        userSelect:     'none',
+        cursor:         'pointer',
+        textAlign:      'center',
+        lineHeight:     '1.2',
+        zIndex:         '1001',
+        ...extraStyles,
+      });
+      btn.textContent = label;
+      return btn;
+    };
+
+    this.btnMenu = makeTopBtn('≡\nMENU', {
+      top:  '12px',
+      left: '12px',
+    });
+    this.btnMenu.addEventListener('touchstart', e => {
+      e.preventDefault();
+      window.dispatchEvent(
+        new CustomEvent('naija:togglePause')
+      );
+    }, { passive: false });
+
+    this.btnMap = makeTopBtn('🗺\nMAP', {
+      top:  '12px',
+      left: '60px',
+    });
+    this.btnMap.addEventListener('touchstart', e => {
+      e.preventDefault();
+      window.dispatchEvent(
+        new CustomEvent('naija:toggleMap')
+      );
+    }, { passive: false });
+
+    this.timeChip = document.createElement('div');
+    Object.assign(this.timeChip.style, {
+      position:       'fixed',
+      top:            '12px',
+      right:          '12px',
+      padding:        '6px 12px',
+      borderRadius:   '20px',
+      background:     'rgba(0,0,0,0.55)',
+      border:         '1px solid rgba(255,255,255,0.25)',
+      color:          '#FFD700',
+      fontFamily:     'Arial, sans-serif',
+      fontSize:       '13px',
+      fontWeight:     'bold',
+      pointerEvents:  'none',
+      userSelect:     'none',
+      zIndex:         '1001',
+    });
+    this.timeChip.textContent = '00:00 AM';
+
+    this.root.appendChild(this.btnMenu);
+    this.root.appendChild(this.btnMap);
+    this.root.appendChild(this.timeChip);
+  }
+
+  updateTimeDisplay(timeString) {
+    if (this.timeChip) {
+      this.timeChip.textContent = timeString;
+    }
   }
 
   // ── Touch events ──────────────────────────────
