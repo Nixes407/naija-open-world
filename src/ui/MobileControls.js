@@ -74,6 +74,126 @@ export default class MobileControls {
 
     this.joystickOuter.appendChild(this.joystickKnob);
     this.root.appendChild(this.joystickOuter);
+    this._buildButtons();
+    this._buildLookZone();
+  }
+
+  _buildButtons() {
+    // Button configs [id, label, color,
+    //                 bottom, right]
+    const btns = [
+      { id:'btnA', label:'⚡ ACT',
+        bg:'#FFD700',
+        bottom:'20px',  right:'20px'  },
+      { id:'btnB', label:'↑ JUMP',
+        bg:'rgba(255,255,255,0.7)',
+        bottom:'90px',  right:'80px'  },
+      { id:'btnC', label:'▶▶ RUN',
+        bg:'rgba(255,255,255,0.5)',
+        bottom:'20px',  right:'90px'  },
+    ];
+
+    this.buttons = {};
+    btns.forEach(cfg => {
+      const btn = document.createElement('div');
+      Object.assign(btn.style, {
+        position:     'fixed',
+        bottom:       cfg.bottom,
+        right:        cfg.right,
+        width:        '60px',
+        height:       '60px',
+        borderRadius: '50%',
+        background:   cfg.bg,
+        display:      'flex',
+        alignItems:   'center',
+        justifyContent:'center',
+        fontSize:     '11px',
+        fontWeight:   'bold',
+        fontFamily:   'Arial, sans-serif',
+        color:        '#000',
+        pointerEvents:'auto',
+        touchAction:  'none',
+        userSelect:   'none',
+        cursor:       'pointer',
+        boxShadow:    '0 2px 8px rgba(0,0,0,0.5)',
+        transition:   'opacity 0.2s, transform 0.1s',
+        textAlign:    'center',
+        lineHeight:   '1.2',
+        padding:      '4px',
+      });
+      btn.textContent = cfg.label;
+      btn.dataset.btnId = cfg.id;
+
+      // Press animation
+      btn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        btn.style.transform = 'scale(0.88)';
+        btn.style.opacity   = '0.75';
+        if (cfg.id === 'btnA') this._interact = true;
+        if (cfg.id === 'btnB') this._jump     = true;
+        if (cfg.id === 'btnC') this._sprint   = true;
+      }, { passive: false });
+
+      btn.addEventListener('touchend', e => {
+        e.preventDefault();
+        btn.style.transform = 'scale(1)';
+        btn.style.opacity   = '1';
+        if (cfg.id === 'btnC') this._sprint = false;
+      }, { passive: false });
+
+      this.buttons[cfg.id] = btn;
+      this.root.appendChild(btn);
+    });
+  }
+
+  _buildLookZone() {
+    this.lookZone = document.createElement('div');
+    Object.assign(this.lookZone.style, {
+      position:     'fixed',
+      top:          '0',
+      right:        '0',
+      width:        '60%',
+      height:       '100%',
+      pointerEvents:'auto',
+      touchAction:  'none',
+      userSelect:   'none',
+      // transparent — invisible to player
+      background:   'transparent',
+    });
+
+    this.lookZone.addEventListener('touchstart', e => {
+      for (const t of e.changedTouches) {
+        if (this._lookTouchId === null &&
+            t.identifier !== this._joystickTouchId) {
+          this._lookTouchId = t.identifier;
+          this._lookLastX   = t.clientX;
+          this._lookLastY   = t.clientY;
+        }
+      }
+    }, { passive: true });
+
+    this.lookZone.addEventListener('touchmove', e => {
+      for (const t of e.changedTouches) {
+        if (t.identifier === this._lookTouchId) {
+          this._lookDX += (t.clientX - this._lookLastX)
+                          * 0.004;
+          this._lookDY += (t.clientY - this._lookLastY)
+                          * 0.004;
+          this._lookLastX = t.clientX;
+          this._lookLastY = t.clientY;
+        }
+      }
+    }, { passive: true });
+
+    this.lookZone.addEventListener('touchend', e => {
+      for (const t of e.changedTouches) {
+        if (t.identifier === this._lookTouchId) {
+          this._lookTouchId = null;
+        }
+      }
+    }, { passive: true });
+
+    this.root.appendChild(this.lookZone);
   }
 
   // ── Touch events ──────────────────────────────
