@@ -434,17 +434,37 @@ export class CharacterController {
     const group = new THREE.Group();
 
     // ── Skin and clothing colors ──
-    const skinMat = new THREE.MeshLambertMaterial({
-      color: '#8D5524', // Nigerian skin tone
+    // MeshStandardMaterial (not Lambert) because it supports `emissive`: the
+    // world runs a full day/night cycle and the sun light fades to 0, so a
+    // purely lit material would make the player unreadable after sunset. The
+    // small emissive terms below are the same trick the old capsule used.
+    const skinMat = new THREE.MeshStandardMaterial({
+      color:             '#8D5524', // Nigerian skin tone
+      roughness:         0.8,
+      metalness:         0.0,
+      emissive:          '#1a0d00',
+      emissiveIntensity: 0.4,
     });
-    const shirtMat = new THREE.MeshLambertMaterial({
-      color: '#FFD700', // Danfo yellow shirt
+    const shirtMat = new THREE.MeshStandardMaterial({
+      color:             '#FFD700', // Danfo yellow shirt
+      roughness:         0.7,
+      metalness:         0.0,
+      emissive:          '#2a1f00',
+      emissiveIntensity: 0.35,
     });
-    const trouserMat = new THREE.MeshLambertMaterial({
-      color: '#1a1a2e', // Dark trousers
+    const trouserMat = new THREE.MeshStandardMaterial({
+      color:             '#1a1a2e', // Dark trousers
+      roughness:         0.9,
+      metalness:         0.0,
+      emissive:          '#05050f',
+      emissiveIntensity: 0.3,
     });
-    const shoeMat = new THREE.MeshLambertMaterial({
-      color: '#2C1810', // Dark shoes
+    const shoeMat = new THREE.MeshStandardMaterial({
+      color:             '#2C1810', // Dark shoes
+      roughness:         0.9,
+      metalness:         0.0,
+      emissive:          '#0a0502',
+      emissiveIntensity: 0.3,
     });
 
     // ── Head ──
