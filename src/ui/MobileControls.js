@@ -179,6 +179,20 @@ export default class MobileControls {
         if (cfg.id === 'btnC') this._sprint = false;
       }, { passive: false });
 
+      // Mouse fallback so the buttons are testable on desktop / in device
+      // emulation, and so touch devices that only synthesise click events
+      // (some in-app webviews) still fire the action.
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        if (cfg.id === 'btnA') this._interact = true;
+        if (cfg.id === 'btnB') this._jump     = true;
+        if (cfg.id === 'btnC') this._sprint   = true;
+        // Auto-release sprint after 16ms on click
+        if (cfg.id === 'btnC') {
+          setTimeout(() => { this._sprint = false; }, 16);
+        }
+      });
+
       this.buttons[cfg.id] = btn;
       this.root.appendChild(btn);
     });
@@ -192,7 +206,14 @@ export default class MobileControls {
       right:        '0',
       width:        '60%',
       height:       '100%',
-      pointerEvents:'auto',
+      // Starts DISABLED. This zone covers the right 60% of the viewport at
+      // full height, which includes the dead centre of the screen where the
+      // start overlay's "Click to play" CTA lives. If it were 'auto' from
+      // construction it would swallow every tap on the overlay (and on the
+      // canvas) before the game has started, because the root sits at
+      // z-index 1000 while #overlay is trapped at z-index auto.
+      // main.js calls enable() from the start handler to turn look on.
+      pointerEvents:'none',
       touchAction:  'none',
       userSelect:   'none',
       // transparent — invisible to player
@@ -393,6 +414,28 @@ export default class MobileControls {
     this._jump     = false;
     this._interact = false;
     return out;
+  }
+
+  /**
+   * Turn camera-look touch capture on. Called by main.js once the game has
+   * actually started, so the invisible look zone cannot eat taps on the
+   * start overlay. No-op on desktop, where the UI is never built.
+   */
+  enable() {
+    if (!this.active) return;
+    if (this.lookZone) {
+      this.lookZone.style.pointerEvents = 'auto';
+    }
+  }
+
+  /**
+   * Turn camera-look touch capture off again (pause / back to the start
+   * overlay) so taps fall through to the DOM underneath.
+   */
+  disable() {
+    if (this.lookZone) {
+      this.lookZone.style.pointerEvents = 'none';
+    }
   }
 
   setContext(name) {

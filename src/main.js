@@ -124,6 +124,10 @@ window.addEventListener('orientationchange', () => renderer.resize());
 
 function startPlaying() {
   overlay.classList.add('hidden');
+  // The mobile look zone is built with pointer-events:none precisely so it
+  // cannot swallow the tap that starts the game. Now that the overlay is out
+  // of the way, switch camera-look capture on. No-op on desktop.
+  mobileControls.enable();
   input.requestPointerLock();
 }
 

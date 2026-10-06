@@ -37,6 +37,18 @@
         inset: 0;
       }
 
+      /* The MobileControls layer is appended to <body> at z-index 1000/1001,
+         and `position: fixed` makes #app its own stacking context - so a
+         z-index on #overlay alone could never climb above the touch layer.
+         Lift #app only while the start overlay is on screen; the moment
+         `.hidden` is added (game started) it drops back below so the
+         joystick and A/B/C buttons receive touches again.
+         Browsers without :has() simply ignore this rule and fall back to the
+         pointer-events fix in MobileControls. */
+      #app:has(#overlay:not(.hidden)) {
+        z-index: 10001;
+      }
+
       #game-canvas {
         display: block;
         width: 100%;
@@ -164,6 +176,11 @@
         background: radial-gradient(circle at 50% 45%, rgba(10, 10, 46, 0.35), rgba(4, 4, 20, 0.82));
         cursor: pointer;
         transition: opacity 220ms ease;
+        /* Above the MobileControls touch layer (z-index 1000/1001) so the
+           "Click to play" CTA always wins the hit test. See the #app:has()
+           rule above - #app must be lifted too, or this value is trapped
+           inside #app's fixed-position stacking context. */
+        z-index: 10000;
       }
 
       #overlay.hidden {
