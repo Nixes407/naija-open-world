@@ -2,6 +2,8 @@ import OrientationGuard from './ui/OrientationGuard.js';
 import MobileControls from './ui/MobileControls.js';
 import WorldBuilder from './world/WorldBuilder.js';
 import RoadNetwork  from './world/RoadNetwork.js';
+import WaterSystem from './world/WaterSystem.js';
+import Landmarks  from './world/Landmarks.js';
 import { Renderer } from './core/Renderer.js';
 import { InputManager } from './core/InputManager.js';
 import { CharacterController } from './player/CharacterController.js';
@@ -74,6 +76,22 @@ const roadNetwork = new RoadNetwork(
   renderer.scene
 );
 roadNetwork.build(CITY_CONFIG);
+
+// ── Lagos Lagoon ──
+const waterSystem = new WaterSystem(renderer.scene);
+waterSystem.build({
+  width:  500,
+  length: 300,
+  x:      0,
+  z:      260,
+});
+
+// ── Hero landmarks ──
+const landmarks = new Landmarks(renderer.scene);
+landmarks.build({
+  cityOffsetX: 0,
+  cityOffsetZ: 0,
+});
 
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
@@ -191,6 +209,8 @@ function frame(now) {
 
   // 3. Sky, fog, sun, stars, shadows all follow the sun's position.
   renderer.updateEnvironment(env, player.position);
+
+  waterSystem.update();
 
   // 4. Draw.
   renderer.render();
