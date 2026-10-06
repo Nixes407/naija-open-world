@@ -1,5 +1,6 @@
 import OrientationGuard from './ui/OrientationGuard.js';
 import MobileControls from './ui/MobileControls.js';
+import FullscreenManager from './ui/FullscreenManager.js';
 import WorldBuilder from './world/WorldBuilder.js';
 import RoadNetwork  from './world/RoadNetwork.js';
 import WaterSystem from './world/WaterSystem.js';
@@ -60,6 +61,10 @@ const player = new CharacterController({
 });
 const orientationGuard = new OrientationGuard();
 orientationGuard.startListening();
+
+// Self-contained: builds its own top-centre toggle button and listens for
+// fullscreenchange to keep the icon in sync.
+const fullscreen = new FullscreenManager();
 
 // ── Build Lagos city ──
 const CITY_CONFIG = {
