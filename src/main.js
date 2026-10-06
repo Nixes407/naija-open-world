@@ -1,3 +1,4 @@
+import OrientationGuard from './ui/OrientationGuard.js';
 import { Renderer } from './core/Renderer.js';
 import { InputManager } from './core/InputManager.js';
 import { CharacterController } from './player/CharacterController.js';
@@ -32,6 +33,8 @@ const renderer = new Renderer(canvas);
 const input = new InputManager(canvas);
 const time = new TimeSystem({ startHour: 6, timeScale: 1 });
 const player = new CharacterController({ renderer, input });
+const orientationGuard = new OrientationGuard();
+orientationGuard.startListening();
 
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
