@@ -1,5 +1,7 @@
 import OrientationGuard from './ui/OrientationGuard.js';
 import MobileControls from './ui/MobileControls.js';
+import WorldBuilder from './world/WorldBuilder.js';
+import RoadNetwork  from './world/RoadNetwork.js';
 import { Renderer } from './core/Renderer.js';
 import { InputManager } from './core/InputManager.js';
 import { CharacterController } from './player/CharacterController.js';
@@ -54,6 +56,24 @@ const player = new CharacterController({
 });
 const orientationGuard = new OrientationGuard();
 orientationGuard.startListening();
+
+// ── Build Lagos city ──
+const CITY_CONFIG = {
+  gridCols:  8,
+  gridRows:  8,
+  blockSize: 40,
+  roadWidth: 10,
+};
+
+const worldBuilder = new WorldBuilder(
+  renderer.scene
+);
+worldBuilder.build(CITY_CONFIG);
+
+const roadNetwork = new RoadNetwork(
+  renderer.scene
+);
+roadNetwork.build(CITY_CONFIG);
 
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
