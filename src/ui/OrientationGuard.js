@@ -121,67 +121,78 @@ export default class OrientationGuard {
 
 
   update() {
-
     if (!this.isMobile()) {
-
       this.overlay.style.display = 'none';
-
       return;
-
     }
-
-    this.overlay.style.display = 
-
-      this.isPortrait() ? 'flex' : 'none';
-
+    // Only show if portrait AND lock failed
+    // (soft hint handles this, so update()
+    //  just hides in landscape)
+    if (!this.isPortrait()) {
+      this.overlay.style.display = 'none';
+    }
   }
 
+  _showSoftHint() {
+    // Only show if actually in portrait
+    if (!this.isPortrait()) return;
 
+    // Change overlay text to be a soft hint
+    // (not a hard block)
+    this.overlay.style.display    = 'flex';
+    this.overlay.style.background = 'rgba(0,0,0,0.7)';
+
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+      this.overlay.style.opacity    = '0';
+      this.overlay.style.transition = 'opacity 0.5s';
+      setTimeout(() => {
+        this.overlay.style.display = 'none';
+        this.overlay.style.opacity = '1';
+      }, 500);
+    }, 3000);
+  }
 
   startListening() {
+    if (!this.isMobile()) return;
 
-    this.update();
+    // Attempt silent auto-lock to landscape
+    // This works on Android Chrome when page is
+    // focused. On iOS it silently fails — that
+    // is expected and handled below.
+    const tryLock = () => {
+      if (screen.orientation &&
+          screen.orientation.lock) {
+        screen.orientation.lock('landscape')
+          .then(() => {
+            // Lock succeeded — hide overlay
+            // completely, never show it
+            this.overlay.style.display = 'none';
+          })
+          .catch(() => {
+            // Lock failed (iOS or no fullscreen)
+            // Show a soft auto-dismissing hint
+            this._showSoftHint();
+          });
+      } else {
+        // API not available — show soft hint
+        this._showSoftHint();
+      }
+    };
 
-    // Attempt real OS-level landscape lock
+    // Small delay so page is fully loaded first
+    setTimeout(tryLock, 800);
 
-    // (works on Android Chrome, silently fails
-
-    //  elsewhere — that is expected behaviour)
-
-    if (this.isMobile() && screen.orientation 
-
-        && screen.orientation.lock) {
-
-      screen.orientation.lock('landscape')
-
-        .catch(() => {
-
-          // Lock not supported or not in 
-
-          // fullscreen — CSS fallback handles it
-
-        });
-
-    }
-
-    // CSS fallback listeners
-
-    window.addEventListener('resize', 
-
+    // Still listen for orientation changes
+    // in case user manually rotates
+    window.addEventListener('resize',
       () => this.update()
-
     );
-
     if (screen.orientation) {
-
       screen.orientation.addEventListener(
-
         'change', () => this.update()
-
       );
-
     }
-
   }
 
 }

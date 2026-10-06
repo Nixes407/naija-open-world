@@ -1,11 +1,13 @@
 import OrientationGuard from './ui/OrientationGuard.js';
 import MobileControls from './ui/MobileControls.js';
+import FullscreenManager from './ui/FullscreenManager.js';
 import WorldBuilder from './world/WorldBuilder.js';
 import RoadNetwork  from './world/RoadNetwork.js';
 import WaterSystem from './world/WaterSystem.js';
 import Landmarks  from './world/Landmarks.js';
 import StreetFurniture from './world/StreetFurniture.js';
 import AmbientDetails  from './world/AmbientDetails.js';
+import CollisionSystem from './world/CollisionSystem.js';
 import { Renderer } from './core/Renderer.js';
 import { InputManager } from './core/InputManager.js';
 import { CharacterController } from './player/CharacterController.js';
@@ -61,6 +63,15 @@ const player = new CharacterController({
 const orientationGuard = new OrientationGuard();
 orientationGuard.startListening();
 
+// Self-contained: builds its own top-centre toggle button and listens for
+// fullscreenchange to keep the icon in sync. It also receives the
+// orientationGuard so it can request the landscape lock the moment the page
+// actually enters fullscreen - lock() only succeeds from fullscreen, which is
+// what makes Android auto-rotate work.
+const fullscreen = new FullscreenManager(
+  orientationGuard
+);
+
 // ── Build Lagos city ──
 const CITY_CONFIG = {
   gridCols:  8,
@@ -105,6 +116,21 @@ const ambientDetails = new AmbientDetails(
 );
 ambientDetails.build(CITY_CONFIG);
 
+// ── Collision system ──
+// Must come AFTER the player: it adds its static colliders to the player's
+// own CANNON.World (CharacterController exposes it as the public `.world`),
+// and after every visual build so the collider positions can be derived from
+// the same CITY_CONFIG the world modules were built with.
+const collisionSystem = new CollisionSystem(
+  player.world
+);
+collisionSystem.buildCityColliders(CITY_CONFIG);
+collisionSystem.buildLandmarkColliders({
+  cityOffsetX: 0,
+  cityOffsetZ: 0,
+});
+collisionSystem.buildWorldBoundaries(250);
+
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
 //   Naija.player.respawn(20, 20)
@@ -124,6 +150,10 @@ window.addEventListener('orientationchange', () => renderer.resize());
 
 function startPlaying() {
   overlay.classList.add('hidden');
+  // The mobile look zone is built with pointer-events:none precisely so it
+  // cannot swallow the tap that starts the game. Now that the overlay is out
+  // of the way, switch camera-look capture on. No-op on desktop.
+  mobileControls.enable();
   input.requestPointerLock();
 }
 

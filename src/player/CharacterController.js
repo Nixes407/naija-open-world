@@ -58,42 +58,16 @@ export class CharacterController {
     this._inVehicle = false;
 
     /* ---------------------------------------------------------------------- */
-    /* Visual: danfo-yellow capsule                                            */
+    /* Visual: humanoid figure (head / torso / arms / legs)                    */
     /* ---------------------------------------------------------------------- */
-    const material = new THREE.MeshStandardMaterial({
-      color: DANFO_YELLOW,
-      roughness: 0.42,
-      metalness: 0.08,
-      emissive: 0x2a1f00,
-      emissiveIntensity: 0.35,
-    });
-
-    this.mesh = new THREE.Mesh(createCapsuleGeometry(PLAYER_RADIUS, PLAYER_HALF_HEIGHT * 2), material);
+    // Only the *visual* changed here: the old danfo-yellow capsule blob
+    // (createCapsuleGeometry) is replaced by a recognisable human figure built
+    // from primitives. The CANNON physics body further down is untouched, and
+    // the figure keeps the same "feet origin" convention as the capsule did, so
+    // every position/rotation line in _updateMovement still works unchanged on
+    // the Group.
+    this.mesh = this._buildHumanoidMesh();
     this.mesh.name = 'Player';
-    this.mesh.castShadow = true;
-    this.mesh.receiveShadow = true;
-
-    // Nose: shows which way the character faces (local -Z is "forward").
-    const nose = new THREE.Mesh(
-      new THREE.ConeGeometry(0.2, 0.4, 12),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0 }),
-    );
-    nose.rotation.x = -Math.PI / 2;
-    nose.position.set(0, CENTER_HEIGHT + 0.15, -PLAYER_RADIUS - 0.1);
-    nose.castShadow = true;
-    this.mesh.add(nose);
-    this.nose = nose;
-
-    // Dark outline: keeps the bright danfo yellow readable against the soil in
-    // full daylight (a light-coloured character on light ground otherwise
-    // melts into the background).
-    const outline = new THREE.Mesh(
-      this.mesh.geometry,
-      new THREE.MeshBasicMaterial({ color: 0x1b1206, side: THREE.BackSide }),
-    );
-    outline.scale.setScalar(1.045);
-    this.mesh.add(outline);
-    this.outline = outline;
 
     // Contact patch on the ground: reads as weight and confirms the height math.
     const contact = new THREE.Mesh(
@@ -240,6 +214,8 @@ export class CharacterController {
     this._updateCamera(dt);
 
     this._updateMobileContext();
+
+    this._animateWalk();
   }
 
   _updateLook(dt, mobileInput = null) {
@@ -448,6 +424,250 @@ export class CharacterController {
     const camera = this.renderer.camera;
     camera.position.copy(this._smoothedCamera);
     camera.lookAt(this._smoothedLookAt);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Humanoid visual                                                           */
+  /* ------------------------------------------------------------------------ */
+
+  _buildHumanoidMesh() {
+    const group = new THREE.Group();
+
+    // ── Skin and clothing colors ──
+    // MeshStandardMaterial (not Lambert) because it supports `emissive`: the
+    // world runs a full day/night cycle and the sun light fades to 0, so a
+    // purely lit material would make the player unreadable after sunset. The
+    // small emissive terms below are the same trick the old capsule used.
+    const skinMat = new THREE.MeshStandardMaterial({
+      color:             '#8D5524', // Nigerian skin tone
+      roughness:         0.8,
+      metalness:         0.0,
+      emissive:          '#1a0d00',
+      emissiveIntensity: 0.4,
+    });
+    const shirtMat = new THREE.MeshStandardMaterial({
+      color:             '#FFD700', // Danfo yellow shirt
+      roughness:         0.7,
+      metalness:         0.0,
+      emissive:          '#2a1f00',
+      emissiveIntensity: 0.35,
+    });
+    const trouserMat = new THREE.MeshStandardMaterial({
+      color:             '#1a1a2e', // Dark trousers
+      roughness:         0.9,
+      metalness:         0.0,
+      emissive:          '#05050f',
+      emissiveIntensity: 0.3,
+    });
+    const shoeMat = new THREE.MeshStandardMaterial({
+      color:             '#2C1810', // Dark shoes
+      roughness:         0.9,
+      metalness:         0.0,
+      emissive:          '#0a0502',
+      emissiveIntensity: 0.3,
+    });
+
+    // ── Head ──
+    const headGeo = new THREE.SphereGeometry(
+      0.18, 12, 10
+    );
+    const head = new THREE.Mesh(headGeo, skinMat);
+    head.position.y = 1.65;
+    head.castShadow = true;
+    group.add(head);
+
+    // ── Neck ──
+    const neckGeo = new THREE.CylinderGeometry(
+      0.07, 0.08, 0.12, 8
+    );
+    const neck = new THREE.Mesh(neckGeo, skinMat);
+    neck.position.y = 1.49;
+    group.add(neck);
+
+    // ── Torso ──
+    const torsoGeo = new THREE.BoxGeometry(
+      0.38, 0.5, 0.22
+    );
+    const torso = new THREE.Mesh(torsoGeo, shirtMat);
+    torso.position.y = 1.18;
+    torso.castShadow = true;
+    group.add(torso);
+
+    // ── Hips ──
+    const hipGeo = new THREE.BoxGeometry(
+      0.34, 0.18, 0.20
+    );
+    const hip = new THREE.Mesh(hipGeo, trouserMat);
+    hip.position.y = 0.90;
+    group.add(hip);
+
+    // ── Left Arm ──
+    const upperArmGeo = new THREE.CylinderGeometry(
+      0.06, 0.055, 0.28, 8
+    );
+    const lUpperArm = new THREE.Mesh(
+      upperArmGeo, shirtMat
+    );
+    lUpperArm.position.set(-0.25, 1.15, 0);
+    lUpperArm.rotation.z = 0.25;
+    group.add(lUpperArm);
+
+    const forearmGeo = new THREE.CylinderGeometry(
+      0.05, 0.045, 0.26, 8
+    );
+    const lForearm = new THREE.Mesh(
+      forearmGeo, skinMat
+    );
+    lForearm.position.set(-0.31, 0.88, 0);
+    lForearm.rotation.z = 0.15;
+    group.add(lForearm);
+
+    // ── Right Arm ──
+    const rUpperArm = new THREE.Mesh(
+      upperArmGeo, shirtMat
+    );
+    rUpperArm.position.set(0.25, 1.15, 0);
+    rUpperArm.rotation.z = -0.25;
+    group.add(rUpperArm);
+
+    const rForearm = new THREE.Mesh(
+      forearmGeo, skinMat
+    );
+    rForearm.position.set(0.31, 0.88, 0);
+    rForearm.rotation.z = -0.15;
+    group.add(rForearm);
+
+    // ── Left Leg ──
+    const thighGeo = new THREE.CylinderGeometry(
+      0.08, 0.07, 0.32, 8
+    );
+    const lThigh = new THREE.Mesh(
+      thighGeo, trouserMat
+    );
+    lThigh.position.set(-0.10, 0.65, 0);
+    group.add(lThigh);
+
+    const shinGeo = new THREE.CylinderGeometry(
+      0.06, 0.05, 0.30, 8
+    );
+    const lShin = new THREE.Mesh(
+      shinGeo, trouserMat
+    );
+    lShin.position.set(-0.10, 0.34, 0);
+    group.add(lShin);
+
+    // Left shoe
+    const shoeGeo = new THREE.BoxGeometry(
+      0.1, 0.07, 0.18
+    );
+    const lShoe = new THREE.Mesh(shoeGeo, shoeMat);
+    lShoe.position.set(-0.10, 0.185, 0.03);
+    group.add(lShoe);
+
+    // ── Right Leg ──
+    const rThigh = new THREE.Mesh(
+      thighGeo, trouserMat
+    );
+    rThigh.position.set(0.10, 0.65, 0);
+    group.add(rThigh);
+
+    const rShin = new THREE.Mesh(
+      shinGeo, trouserMat
+    );
+    rShin.position.set(0.10, 0.34, 0);
+    group.add(rShin);
+
+    // Right shoe
+    const rShoe = new THREE.Mesh(shoeGeo, shoeMat);
+    rShoe.position.set(0.10, 0.185, 0.03);
+    group.add(rShoe);
+
+    // ── Store references for walk animation ──
+    group.userData.lUpperArm = lUpperArm;
+    group.userData.rUpperArm = rUpperArm;
+    group.userData.lThigh    = lThigh;
+    group.userData.rThigh    = rThigh;
+    group.userData.lShin     = lShin;
+    group.userData.rShin     = rShin;
+
+    // Scale group so figure height matches
+    // the 2.0m physics capsule exactly.
+    // Current measured height: 1.83m (top of head)
+    // with feet at 0.15m — net figure = 1.68m.
+    // We need 2.0m total, feet at y=0.
+    const currentHeight = 1.68;
+    const targetHeight  = 2.0;
+    const scaleFactor   = targetHeight / currentHeight;
+
+    // Step 1: shift the figure down so the feet touch y=0.
+    // Step 2: scale up to fill the 2.0m capsule.
+    //
+    // Both live on an INNER group, not on `group` itself: _updateMovement()
+    // rewrites this.mesh.position every frame (and the constructor copies the
+    // rig position into it), so an offset stored on the outer group would be
+    // clobbered before the first render and the feet would float again.
+    // The offset is -0.15 * scaleFactor because the shift is applied after the
+    // scale, which lifts the feet by the same factor.
+    const figure = new THREE.Group();
+    while (group.children.length > 0) {
+      figure.add(group.children[0]);
+    }
+    figure.position.y = -0.15 * scaleFactor;
+    figure.scale.setScalar(scaleFactor);
+    group.add(figure);
+
+    // Enable shadows on every mesh in the group
+    group.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow    = true;
+        child.receiveShadow = false;
+      }
+    });
+
+    return group;
+  }
+
+  /**
+   * Swing the limbs while the player moves, relax to a neutral pose when idle.
+   * Reads the horizontal speed straight off the CANNON body (`this.body` -
+   * note: not `_body`), so keyboard and touch input animate identically.
+   */
+  _animateWalk() {
+    if (!this.mesh) return;
+    const ud = this.mesh.userData;
+    if (!ud.lThigh) return;
+
+    // Check if player is moving
+    const vel = this.body
+      ? this.body.velocity
+      : null;
+    const speed = vel
+      ? Math.sqrt(
+          vel.x * vel.x + vel.z * vel.z
+        )
+      : 0;
+
+    if (speed > 0.5) {
+      // Walking animation — swing limbs
+      const t   = performance.now() * 0.006;
+      const sw  = Math.sin(t) * 0.4;
+      const sw2 = Math.sin(t + Math.PI) * 0.4;
+
+      if (ud.lThigh) ud.lThigh.rotation.x =  sw;
+      if (ud.rThigh) ud.rThigh.rotation.x =  sw2;
+      if (ud.lShin)  ud.lShin.rotation.x  =
+        Math.max(0, -sw) * 0.5;
+      if (ud.rShin)  ud.rShin.rotation.x  =
+        Math.max(0, -sw2) * 0.5;
+      if (ud.lUpperArm) ud.lUpperArm.rotation.x = sw2 * 0.6;
+      if (ud.rUpperArm) ud.rUpperArm.rotation.x = sw  * 0.6;
+    } else {
+      // Idle — reset to neutral pose
+      ['lThigh','rThigh','lShin','rShin',
+       'lUpperArm','rUpperArm'].forEach(k => {
+        if (ud[k]) ud[k].rotation.x = 0;
+      });
+    }
   }
 
   /* ------------------------------------------------------------------------ */
