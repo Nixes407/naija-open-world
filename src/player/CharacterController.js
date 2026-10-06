@@ -570,6 +570,40 @@ export class CharacterController {
     group.userData.lShin     = lShin;
     group.userData.rShin     = rShin;
 
+    // Scale group so figure height matches
+    // the 2.0m physics capsule exactly.
+    // Current measured height: 1.83m (top of head)
+    // with feet at 0.15m — net figure = 1.68m.
+    // We need 2.0m total, feet at y=0.
+    const currentHeight = 1.68;
+    const targetHeight  = 2.0;
+    const scaleFactor   = targetHeight / currentHeight;
+
+    // Step 1: shift the figure down so the feet touch y=0.
+    // Step 2: scale up to fill the 2.0m capsule.
+    //
+    // Both live on an INNER group, not on `group` itself: _updateMovement()
+    // rewrites this.mesh.position every frame (and the constructor copies the
+    // rig position into it), so an offset stored on the outer group would be
+    // clobbered before the first render and the feet would float again.
+    // The offset is -0.15 * scaleFactor because the shift is applied after the
+    // scale, which lifts the feet by the same factor.
+    const figure = new THREE.Group();
+    while (group.children.length > 0) {
+      figure.add(group.children[0]);
+    }
+    figure.position.y = -0.15 * scaleFactor;
+    figure.scale.setScalar(scaleFactor);
+    group.add(figure);
+
+    // Enable shadows on every mesh in the group
+    group.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow    = true;
+        child.receiveShadow = false;
+      }
+    });
+
     return group;
   }
 
