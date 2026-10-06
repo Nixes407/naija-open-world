@@ -50,6 +50,13 @@ export class CharacterController {
     this.scene = renderer.scene;
     this._mobile = mobileControls;
 
+    // Proximity context detection
+    this._lastContext = 'default';
+    // No vehicles exist yet, so nothing flips this to true during play.
+    // VehicleSystem will own it in a later sprint; until then it is a stub
+    // that can be driven directly (see setInVehicle below).
+    this._inVehicle = false;
+
     /* ---------------------------------------------------------------------- */
     /* Visual: danfo-yellow capsule                                            */
     /* ---------------------------------------------------------------------- */
@@ -231,6 +238,8 @@ export class CharacterController {
     this._updateLook(dt, mobileInput);
     this._updateMovement(dt, env, mobileInput);
     this._updateCamera(dt);
+
+    this._updateMobileContext();
   }
 
   _updateLook(dt, mobileInput = null) {
@@ -353,6 +362,27 @@ export class CharacterController {
     this.mesh.rotation.x = this.groundContact ? 0 : THREE.MathUtils.clamp(body.velocity.y * 0.01, -0.1, 0.1);
   }
 
+  _updateMobileContext() {
+    if (!this._mobile || !this._mobile.isActive()) return;
+
+    // Default context unless something is nearby
+    let context = 'default';
+
+    // We will do real proximity checks in a later sprint when NPCs and
+    // vehicles exist. For now: detect if player is "driving" by checking
+    // if a vehicle body is active.
+    if (this._inVehicle) {
+      context = 'driving';
+    }
+
+    // Only call setContext if context changed (avoids triggering the fade
+    // animation every frame).
+    if (context !== this._lastContext) {
+      this._lastContext = context;
+      this._mobile.setContext(context);
+    }
+  }
+
   /**
    * Ground check from the physics solver's own contact list.
    *
@@ -430,6 +460,22 @@ export class CharacterController {
     this.body.force.set(0, 0, 0);
     this.body.position.set(x, CENTER_HEIGHT + 0.05, z);
     this._firstFrame = true;
+  }
+
+  /**
+   * Marks the player as driving / on foot. This is what drives the mobile
+   * button context ('driving' vs 'default'); the future VehicleSystem is
+   * expected to call it on enter/exit. Reachable from the console too:
+   *   Naija.player.setInVehicle(true)
+   * No-op for the context until a context actually exists (i.e. no
+   * behaviour change on desktop).
+   */
+  setInVehicle(flag) {
+    this._inVehicle = Boolean(flag);
+  }
+
+  get inVehicle() {
+    return this._inVehicle;
   }
 
   get position() {
