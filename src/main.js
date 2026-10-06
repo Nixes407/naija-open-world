@@ -1,4 +1,5 @@
 import OrientationGuard from './ui/OrientationGuard.js';
+import MobileControls from './ui/MobileControls.js';
 import { Renderer } from './core/Renderer.js';
 import { InputManager } from './core/InputManager.js';
 import { CharacterController } from './player/CharacterController.js';
@@ -32,7 +33,10 @@ const hudStats = document.getElementById('hud-stats');
 const renderer = new Renderer(canvas);
 const input = new InputManager(canvas);
 const time = new TimeSystem({ startHour: 6, timeScale: 1 });
-const player = new CharacterController({ renderer, input });
+const mobileControls = new MobileControls();
+const player = new CharacterController({
+  renderer, input, mobileControls,
+});
 const orientationGuard = new OrientationGuard();
 orientationGuard.startListening();
 
@@ -40,7 +44,7 @@ orientationGuard.startListening();
 //   Naija.time.setHours(18.4)   - jump to sunset
 //   Naija.player.respawn(20, 20)
 //   Naija.renderer.setQualityTier(0)
-window.Naija = { renderer, input, time, player };
+window.Naija = { renderer, input, time, player, mobileControls };
 
 /* -------------------------------------------------------------------------- */
 /* Resize                                                                      */
@@ -156,7 +160,15 @@ function frame(now) {
   // 4. Draw.
   renderer.render();
 
-  // 5. HUD + per-frame input bookkeeping.
+  // 5. Mobile overlay: mirror the world clock into the on-screen time chip.
+  //    TimeSystem exposes formatTime() (e.g. "06:32 AM") - there is no
+  //    getTimeString() on TimeSystem.
+  if (mobileControls.isActive()) {
+    const timeStr = time.formatTime?.() ?? '';
+    mobileControls.updateTimeDisplay(timeStr);
+  }
+
+  // 6. HUD + per-frame input bookkeeping.
   updateFps(dt);
   updateClockHud(dt);
   input.endFrame();
