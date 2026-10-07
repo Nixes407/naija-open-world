@@ -15,6 +15,7 @@ import { TimeSystem } from './world/TimeSystem.js';
 import CharacterCreator from './ui/CharacterCreator.js';
 import PlayerState from './systems/PlayerState.js';
 import StatsHUD from './ui/StatsHUD.js';
+import MiniMap from './ui/MiniMap.js';
 
 /**
  * main.js
@@ -140,6 +141,10 @@ collisionSystem.buildWorldBoundaries(250);
 
 const playerState = new PlayerState();
 const statsHUD = new StatsHUD(playerState);
+const miniMap = new MiniMap(
+  player,
+  worldBuilder
+);
 
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
@@ -149,6 +154,7 @@ window.Naija = {
   renderer, input, time, player, mobileControls,
   playerState: playerState,
   statsHUD: statsHUD,
+  miniMap: miniMap,
 };
 
 /* -------------------------------------------------------------------------- */
@@ -157,6 +163,11 @@ window.Naija = {
 
 window.addEventListener('resize', () => renderer.resize());
 window.addEventListener('orientationchange', () => renderer.resize());
+
+// The MAP button in MobileControls dispatches this on touchstart.
+window.addEventListener('naija:toggleMap',
+  () => miniMap.toggle()
+);
 
 /* -------------------------------------------------------------------------- */
 /* Pointer lock / start overlay                                                */
@@ -176,6 +187,10 @@ async function startPlaying() {
 
   // Initialize player state
   playerState.init(charResult);
+
+  // StatsHUD shows itself off the playerState 'init' event; the mini map
+  // has no such hook, so reveal it here alongside the rest of the HUD.
+  miniMap.show();
 
   // Apply chosen skin tone to 3D character
   if (player && player.mesh) {
@@ -321,6 +336,7 @@ function frame(now) {
   updateClockHud(dt);
   input.endFrame();
   statsHUD.tick();
+  miniMap.tick();
 }
 
 /* -------------------------------------------------------------------------- */
