@@ -49,7 +49,11 @@ if ('ontouchstart' in window ||
 }
 
 const hudPhase = document.getElementById('hud-phase');
-const hudDay = document.getElementById('hud-day');
+// The legacy desktop-clock day span. Renamed to 'hud-day-legacy' so it no
+// longer collides with the id StatsHUD assigns its own day element - and this
+// lookup MUST keep targeting the static HTML node, because it runs at module
+// load, before StatsHUD has constructed anything.
+const hudDay = document.getElementById('hud-day-legacy');
 const hudFps = document.getElementById('hud-fps');
 const hudStats = document.getElementById('hud-stats');
 
