@@ -12,6 +12,8 @@ import { Renderer } from './core/Renderer.js';
 import { InputManager } from './core/InputManager.js';
 import { CharacterController } from './player/CharacterController.js';
 import { TimeSystem } from './world/TimeSystem.js';
+import CharacterCreator from './ui/CharacterCreator.js';
+import PlayerState from './systems/PlayerState.js';
 
 /**
  * main.js
@@ -135,11 +137,16 @@ collisionSystem.buildLandmarkColliders({
 });
 collisionSystem.buildWorldBoundaries(250);
 
+const playerState = new PlayerState();
+
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
 //   Naija.player.respawn(20, 20)
 //   Naija.renderer.setQualityTier(0)
-window.Naija = { renderer, input, time, player, mobileControls };
+window.Naija = {
+  renderer, input, time, player, mobileControls,
+  playerState: playerState,
+};
 
 /* -------------------------------------------------------------------------- */
 /* Resize                                                                      */
@@ -152,13 +159,50 @@ window.addEventListener('orientationchange', () => renderer.resize());
 /* Pointer lock / start overlay                                                */
 /* -------------------------------------------------------------------------- */
 
-function startPlaying() {
+async function startPlaying() {
   overlay.classList.add('hidden');
   // The mobile look zone is built with pointer-events:none precisely so it
   // cannot swallow the tap that starts the game. Now that the overlay is out
   // of the way, switch camera-look capture on. No-op on desktop.
   mobileControls.enable();
   input.requestPointerLock();
+
+  // Open character creator
+  const creator = new CharacterCreator();
+  const charResult = await creator.open();
+
+  // Initialize player state
+  playerState.init(charResult);
+
+  // Apply chosen skin tone to 3D character
+  if (player && player.mesh) {
+    const skinColor = charResult.skinTone.color;
+    player.mesh.traverse(child => {
+      if (child.isMesh && child.material) {
+        const c = child.material.color;
+        if (!c) return;
+        const r = Math.round(c.r * 255);
+        const g = Math.round(c.g * 255);
+        const b = Math.round(c.b * 255);
+        if (r > 100 && r < 180 &&
+            g > 50  && g < 120 &&
+            b > 10  && b < 80) {
+          child.material = child.material.clone();
+          child.material.color.set(skinColor);
+          child.material.emissive.set(skinColor)
+            .multiplyScalar(0.15);
+        }
+      }
+    });
+  }
+
+  // Log to console for now
+  console.log(
+    '✅ Character:', charResult.name,
+    '| Origin:', charResult.origin.name,
+    '| Money: ₦' +
+    charResult.origin.startMoney.toLocaleString()
+  );
 }
 
 overlay.addEventListener('click', startPlaying);
