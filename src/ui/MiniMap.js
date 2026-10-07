@@ -3,7 +3,7 @@ export default class MiniMap {
     this._player       = player;
     this._worldBuilder = worldBuilder;
     this._scale        = 0.4; // world units to px
-    this._radius       = 70;  // map display radius px
+    this._radius       = 55;  // map display radius px
     this._el           = null;
     this._canvas       = null;
     this._ctx          = null;
@@ -16,10 +16,10 @@ export default class MiniMap {
     el.id = 'mini-map';
     Object.assign(el.style, {
       position:     'fixed',
-      top:          '220px',
-      left:         '12px',
-      width:        '140px',
-      height:       '140px',
+      top:          '97px',
+      right:        '12px',
+      width:        '110px',
+      height:       '110px',
       borderRadius: '8px',
       overflow:     'hidden',
       border:       '1px solid rgba(255,215,0,0.4)',
@@ -33,11 +33,11 @@ export default class MiniMap {
 
     // ── Canvas ───────────────────────────────
     const canvas = document.createElement('canvas');
-    canvas.width  = 140;
-    canvas.height = 140;
+    canvas.width  = 110;
+    canvas.height = 110;
     Object.assign(canvas.style, {
-      width:  '140px',
-      height: '140px',
+      width:  '110px',
+      height: '110px',
     });
     this._canvas = canvas;
     this._ctx    = canvas.getContext('2d');
@@ -70,8 +70,8 @@ export default class MiniMap {
 
   _draw() {
     const ctx = this._ctx;
-    const W   = 140;
-    const H   = 140;
+    const W   = 110;
+    const H   = 110;
     const cx  = W / 2;
     const cy  = H / 2;
 

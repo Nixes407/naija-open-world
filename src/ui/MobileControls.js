@@ -297,7 +297,7 @@ export default class MobileControls {
     }, { passive: false });
 
     this.btnMap = makeTopBtn('🗺\nMAP', {
-      top:  '370px',
+      top:  '190px',
       left: '12px',
     });
     this.btnMap.addEventListener('touchstart', e => {
