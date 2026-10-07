@@ -86,7 +86,8 @@ const worldBuilder = new WorldBuilder(
 worldBuilder.build(CITY_CONFIG);
 
 const roadNetwork = new RoadNetwork(
-  renderer.scene
+  renderer.scene,
+  player.world
 );
 roadNetwork.build(CITY_CONFIG);
 
@@ -124,7 +125,10 @@ ambientDetails.build(CITY_CONFIG);
 const collisionSystem = new CollisionSystem(
   player.world
 );
-collisionSystem.buildCityColliders(CITY_CONFIG);
+collisionSystem.buildCityColliders(
+  CITY_CONFIG,
+  worldBuilder.buildingData
+);
 collisionSystem.buildLandmarkColliders({
   cityOffsetX: 0,
   cityOffsetZ: 0,
