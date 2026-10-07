@@ -154,40 +154,34 @@ export default class CollisionSystem {
       cityOffsetZ = 0,
     } = options;
 
-    // NECOM House — tall narrow tower
-    // Position from Landmarks._buildNECOMHouse()
+    // NECOM House — east of city
     this._addBox(
-      cityOffsetX + 80,  60,
-      cityOffsetZ - 60,
+      cityOffsetX + 220, 60,
+      cityOffsetZ + 0,
       9, 60, 9
     );
-    // NECOM podium
     this._addBox(
-      cityOffsetX + 80, 4,
-      cityOffsetZ - 60,
+      cityOffsetX + 220, 4,
+      cityOffsetZ + 0,
       14, 4, 14
     );
 
-    // National Theatre — circular base + drum
-    // Position from Landmarks._buildNationalTheatre()
+    // National Theatre — west of city
     this._addCylinder(
-      cityOffsetX - 120, 3,
-      cityOffsetZ - 20,
+      cityOffsetX - 220, 3,
+      cityOffsetZ + 0,
       30, 6
     );
     this._addCylinder(
-      cityOffsetX - 120, 16,
-      cityOffsetZ - 20,
+      cityOffsetX - 220, 16,
+      cityOffsetZ + 0,
       18, 20
     );
 
-    // Lekki Bridge — deck collider
-    // Position + rotation from
-    // Landmarks._buildLekkiBridge()
-    // Bridge is rotated PI/2 so length is along Z
+    // Lekki Bridge — south of city
     this._addBox(
-      cityOffsetX + 20, 14,
-      cityOffsetZ + 200,
+      cityOffsetX + 0, 14,
+      cityOffsetZ + 220,
       7, 0.6, 100
     );
   }

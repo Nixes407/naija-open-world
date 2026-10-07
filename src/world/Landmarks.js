@@ -230,28 +230,39 @@ export default class Landmarks {
       cityOffsetZ = 0,
     } = options;
 
-    // NECOM House — northeast of city center
+    // City grid occupies x: -175..+175 and z: -175..+175 (8x8 blocks of
+    // 40m + 10m roads, step 50m, centred on the origin). Every landmark is
+    // pushed 45m clear of that footprint so it can never sit on a road or a
+    // building block.
+
+    // NECOM House — placed EAST of city grid
+    // City east edge is at x=+175
+    // Place at x=+220 (45m clear of grid)
     this._group.add(
       this._buildNECOMHouse(
-        cityOffsetX + 80,
-        cityOffsetZ - 60
+        cityOffsetX + 220,
+        cityOffsetZ + 0
       )
     );
 
-    // National Theatre — west of city center
+    // National Theatre — placed WEST of city
+    // City west edge is at x=-175
+    // Place at x=-220 (45m clear of grid)
     this._group.add(
       this._buildNationalTheatre(
-        cityOffsetX - 120,
-        cityOffsetZ - 20
+        cityOffsetX - 220,
+        cityOffsetZ + 0
       )
     );
 
-    // Lekki-Ikoyi Bridge — south of city,
-    // spanning toward water
+    // Lekki-Ikoyi Bridge — placed SOUTH of city
+    // City south edge is at z=+175
+    // Place at z=+220 (45m clear of grid)
+    // This connects city to the lagoon (z=260)
     this._group.add(
       this._buildLekkiBridge(
-        cityOffsetX + 20,
-        cityOffsetZ + 200
+        cityOffsetX + 0,
+        cityOffsetZ + 220
       )
     );
 
