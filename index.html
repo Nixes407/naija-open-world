@@ -218,7 +218,7 @@
         font-weight: 600;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        animation: pulse 2.2s ease-in-out infinite;
+        animation: cta-pulse 2.2s ease-in-out infinite;
       }
 
       #overlay .controls {
@@ -232,7 +232,7 @@
         font-family: 'SFMono-Regular', 'Consolas', monospace;
       }
 
-      @keyframes pulse {
+      @keyframes cta-pulse {
         0%,
         100% {
           transform: scale(1);
@@ -338,6 +338,10 @@
             1px 1px 3px rgba(0,0,0,0.9),
             0 0 6px rgba(0,0,0,0.7) !important;
         }
+      }
+      @keyframes pulse {
+        from { opacity: 1;   }
+        to   { opacity: 0.3; }
       }
     </style>
   </head>

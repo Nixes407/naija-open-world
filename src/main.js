@@ -14,6 +14,7 @@ import { CharacterController } from './player/CharacterController.js';
 import { TimeSystem } from './world/TimeSystem.js';
 import CharacterCreator from './ui/CharacterCreator.js';
 import PlayerState from './systems/PlayerState.js';
+import StatsHUD from './ui/StatsHUD.js';
 
 /**
  * main.js
@@ -138,6 +139,7 @@ collisionSystem.buildLandmarkColliders({
 collisionSystem.buildWorldBoundaries(250);
 
 const playerState = new PlayerState();
+const statsHUD = new StatsHUD(playerState);
 
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
@@ -146,6 +148,7 @@ const playerState = new PlayerState();
 window.Naija = {
   renderer, input, time, player, mobileControls,
   playerState: playerState,
+  statsHUD: statsHUD,
 };
 
 /* -------------------------------------------------------------------------- */
@@ -317,6 +320,7 @@ function frame(now) {
   updateFps(dt);
   updateClockHud(dt);
   input.endFrame();
+  statsHUD.tick();
 }
 
 /* -------------------------------------------------------------------------- */
