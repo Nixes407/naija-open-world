@@ -1,11 +1,40 @@
 import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
 
 export default class RoadNetwork {
-  constructor(scene) {
+  /**
+   * @param {THREE.Scene}  scene
+   * @param {CANNON.World} [world] physics world (the player's). When supplied,
+   *   every pavement mesh below gets a matching static collider so the player
+   *   walks *on* the kerb instead of sinking through it to the y = 0 ground
+   *   plane. Pass null (default) to build visuals only.
+   */
+  constructor(scene, world = null) {
     this.scene  = scene;
+    this._world = world;
     this._group = new THREE.Group();
     this._group.name = 'roads';
     scene.add(this._group);
+    /** Static pavement bodies added to _world (kept for dispose/teardown). */
+    this._bodies = [];
+  }
+
+  // ── Add a static collider matching a pavement mesh ───────────────
+  // Pavement meshes live inside the per-road group, which is itself placed at
+  // (x, 0, z); bodies go straight into the CANNON world (no parenting), so the
+  // group offset is folded into the world position by the caller.
+  _addPavementBody(px, py, pz, halfX, halfY, halfZ) {
+    if (!this._world) return null;
+
+    const shape = new CANNON.Box(
+      new CANNON.Vec3(halfX, halfY, halfZ)
+    );
+    const body = new CANNON.Body({ mass: 0 });
+    body.addShape(shape);
+    body.position.set(px, py, pz);
+    this._world.addBody(body);
+    this._bodies.push(body);
+    return body;
   }
 
   // ── Build one road segment ────────────────────
@@ -74,6 +103,17 @@ export default class RoadNetwork {
       );
       pb.receiveShadow = true;
       group.add(pb);
+
+      // Physics: half-extents (length/2, paveH/2, paveW/2) — same box plus
+      // the group offset (x, 0, z), so the kerb top sits at y = paveH.
+      this._addPavementBody(
+        x, paveH / 2, z + pt.position.z,
+        length / 2, paveH / 2, paveW / 2
+      );
+      this._addPavementBody(
+        x, paveH / 2, z + pb.position.z,
+        length / 2, paveH / 2, paveW / 2
+      );
     } else {
       // Left edge
       const plGeo = new THREE.BoxGeometry(
@@ -95,6 +135,17 @@ export default class RoadNetwork {
       );
       pr.receiveShadow = true;
       group.add(pr);
+
+      // Physics: box is (paveW, paveH, length) — half-extents
+      // (paveW/2, paveH/2, length/2), offset along X by the road group.
+      this._addPavementBody(
+        x + pl.position.x, paveH / 2, z,
+        paveW / 2, paveH / 2, length / 2
+      );
+      this._addPavementBody(
+        x + pr.position.x, paveH / 2, z,
+        paveW / 2, paveH / 2, length / 2
+      );
     }
 
     group.position.set(x, 0, z);
@@ -164,6 +215,10 @@ export default class RoadNetwork {
   }
 
   dispose() {
+    if (this._world) {
+      this._bodies.forEach(b => this._world.removeBody(b));
+      this._bodies = [];
+    }
     this.scene.remove(this._group);
   }
 }

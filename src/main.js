@@ -86,7 +86,8 @@ const worldBuilder = new WorldBuilder(
 worldBuilder.build(CITY_CONFIG);
 
 const roadNetwork = new RoadNetwork(
-  renderer.scene
+  renderer.scene,
+  player.world
 );
 roadNetwork.build(CITY_CONFIG);
 
