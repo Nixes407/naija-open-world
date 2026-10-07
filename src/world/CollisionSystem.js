@@ -44,7 +44,13 @@ export default class CollisionSystem {
   }
 
   // ── Generate colliders for city blocks ───
-  buildCityColliders(options = {}) {
+  /**
+   * @param {object} options                      same CITY_CONFIG the world was built with
+   * @param {Array<{x,z,w,d,h}>} [buildingData]   real footprints from
+   *   WorldBuilder.buildingData. When present, one collider is created per
+   *   actual building; otherwise the legacy per-block approximation is used.
+   */
+  buildCityColliders(options = {}, buildingData = null) {
     const {
       gridCols  = 8,
       gridRows  = 8,
@@ -56,40 +62,55 @@ export default class CollisionSystem {
     const offX = -(gridCols - 1) * step / 2;
     const offZ = -(gridRows - 1) * step / 2;
 
+    // ── Building colliders ──
+    // Preferred path: WorldBuilder tells us exactly where it put every
+    // building (and how big each one is), so collide with the real thing.
+    const hasRealData =
+      Array.isArray(buildingData) && buildingData.length > 0;
+
+    if (hasRealData) {
+      for (const b of buildingData) {
+        this._addBox(
+          b.x, b.h / 2, b.z,       // centre (walls grow up from y = 0)
+          b.w / 2, b.h / 2, b.d / 2 // half-extents
+        );
+      }
+    }
+
     for (let r = 0; r < gridRows; r++) {
       for (let c = 0; c < gridCols; c++) {
         const cx = offX + c * step;
         const cz = offZ + r * step;
 
-        // ── Building colliders ──
-        // WorldBuilder creates cols×rows buildings
-        // per block. We add one large block
-        // collider per building footprint rather
-        // than per-mesh for performance.
-        const cols   = Math.max(
-          1, Math.floor((blockSize - 6) / 14)
-        );
-        const rows   = Math.max(
-          1, Math.floor((blockSize - 6) / 14)
-        );
-        const usable = blockSize - 6;
-        const cellW  = usable / cols;
-        const cellD  = usable / rows;
+        // Fallback (no buildingData): approximate the same grid WorldBuilder
+        // uses - one oversized block collider per building slot. Only used
+        // when the caller has no real footprint list.
+        if (!hasRealData) {
+          const cols   = Math.max(
+            1, Math.floor((blockSize - 6) / 14)
+          );
+          const rows   = Math.max(
+            1, Math.floor((blockSize - 6) / 14)
+          );
+          const usable = blockSize - 6;
+          const cellW  = usable / cols;
+          const cellD  = usable / rows;
 
-        for (let br = 0; br < rows; br++) {
-          for (let bc = 0; bc < cols; bc++) {
-            const bx = cx - usable / 2 +
-                       cellW * (bc + 0.5);
-            const bz = cz - usable / 2 +
-                       cellD * (br + 0.5);
-            const bw = cellW * 0.75;
-            const bd = cellD * 0.75;
-            // Height: use a tall collider 
-            // (40m covers all building heights)
-            this._addBox(
-              bx, 20, bz,  // cx, cy, cz
-              bw / 2, 20, bd / 2 // half-extents
-            );
+          for (let br = 0; br < rows; br++) {
+            for (let bc = 0; bc < cols; bc++) {
+              const bx = cx - usable / 2 +
+                         cellW * (bc + 0.5);
+              const bz = cz - usable / 2 +
+                         cellD * (br + 0.5);
+              const bw = cellW * 0.75;
+              const bd = cellD * 0.75;
+              // Height: use a tall collider 
+              // (40m covers all building heights)
+              this._addBox(
+                bx, 20, bz,  // cx, cy, cz
+                bw / 2, 20, bd / 2 // half-extents
+              );
+            }
           }
         }
 

@@ -125,7 +125,10 @@ ambientDetails.build(CITY_CONFIG);
 const collisionSystem = new CollisionSystem(
   player.world
 );
-collisionSystem.buildCityColliders(CITY_CONFIG);
+collisionSystem.buildCityColliders(
+  CITY_CONFIG,
+  worldBuilder.buildingData
+);
 collisionSystem.buildLandmarkColliders({
   cityOffsetX: 0,
   cityOffsetZ: 0,
