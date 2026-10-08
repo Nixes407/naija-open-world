@@ -253,27 +253,6 @@
       /* ── Mobile orientation ── */
       #orientation-guard { display: none; }
 
-      @media (max-width: 768px) and (orientation: portrait) {
-        /*
-         * canvas / #hud / #overlay stay soft (no !important) so
-         * OrientationGuard JS can still control visibility dynamically -
-         * !important would block JS from hiding the guard overlay after
-         * auto-lock succeeds or after the soft hint dismisses.
-         *
-         * #portrait-hint is the one deliberate exception: its inline style
-         * says display:none, and only an !important author rule can beat an
-         * inline declaration - that is what makes the hint appear.
-         *
-         * #overlay is hidden here so a portrait player cannot tap "Click to
-         * play" and land on a dead screen (the canvas is display:none until
-         * the device rotates). The hint points them at the ⛶ button instead.
-         */
-        #game-canvas   { display: none; }
-        #hud           { display: none; }
-        #overlay       { display: none; }
-        #portrait-hint { display: block !important; }
-      }
-
       @media (max-width: 768px) and (orientation: landscape) {
         #game-canvas {
           width: 100vw !important;
@@ -346,31 +325,6 @@
     </style>
   </head>
   <body oncontextmenu="return false;">
-    <!-- Shown only in portrait on small screens (see the media query in
-         <head>). pointer-events:none so it never blocks the ⛶ button it is
-         telling the player to tap; z-index 10001 keeps it above the
-         orientation guard (9999) and below the fullscreen button (10002). -->
-    <div id="portrait-hint" style="
-      display:        none;
-      position:       fixed;
-      bottom:         30px;
-      left:           50%;
-      transform:      translateX(-50%);
-      background:     rgba(255,215,0,0.15);
-      border:         1px solid #FFD700;
-      color:          #FFD700;
-      font-family:    Arial, sans-serif;
-      font-size:      13px;
-      padding:        8px 16px;
-      border-radius:  20px;
-      z-index:        10001;
-      text-align:     center;
-      pointer-events: none;
-      white-space:    nowrap;
-    ">
-      Tap ⛶ to go fullscreen and auto-rotate
-    </div>
-
     <div id="app">
       <canvas id="game-canvas" tabindex="0"></canvas>
 

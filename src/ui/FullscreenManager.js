@@ -87,10 +87,22 @@ export default class FullscreenManager {
 
   enter() {
     const el = document.documentElement;
-    if (el.requestFullscreen) {
-      el.requestFullscreen();
-    } else if (el.webkitRequestFullscreen) {
-      el.webkitRequestFullscreen();
+    const goFS =
+      el.requestFullscreen?.bind(el) ||
+      el.webkitRequestFullscreen?.bind(el);
+    if (goFS) {
+      try {
+        // Legacy WebKit may return void instead of a Promise.
+        Promise.resolve(goFS()).then(() => {
+          if (screen.orientation?.lock) {
+            screen.orientation
+              .lock('landscape')
+              .catch(() => {});
+          }
+        }).catch(() => {});
+      } catch {
+        // Fullscreen is unsupported or denied — fail silently.
+      }
     }
   }
 
