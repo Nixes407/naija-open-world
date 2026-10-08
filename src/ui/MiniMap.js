@@ -33,6 +33,7 @@ export default class MiniMap {
 
     // ── Canvas ───────────────────────────────
     const canvas = document.createElement('canvas');
+    canvas.id = 'mini-map-canvas';
     canvas.width  = 110;
     canvas.height = 110;
     Object.assign(canvas.style, {

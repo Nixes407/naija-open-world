@@ -268,14 +268,14 @@
          * play" and land on a dead screen (the canvas is display:none until
          * the device rotates). The hint points them at the ⛶ button instead.
          */
-        canvas         { display: none; }
+        #game-canvas   { display: none; }
         #hud           { display: none; }
         #overlay       { display: none; }
         #portrait-hint { display: block !important; }
       }
 
       @media (max-width: 768px) and (orientation: landscape) {
-        canvas {
+        #game-canvas {
           width: 100vw !important;
           height: 100vh !important;
           display: block !important;
@@ -291,7 +291,7 @@
         user-select: none;
       }
 
-      canvas {
+      #game-canvas {
         touch-action: none;
         -webkit-user-select: none;
         user-select: none;
@@ -309,7 +309,7 @@
         #hud-hint   { display:   none !important; }
 
         /* Ensure canvas fills landscape screen exactly */
-        canvas {
+        #game-canvas {
           position: fixed !important;
           top: 0 !important;
           left: 0 !important;

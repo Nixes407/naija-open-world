@@ -102,6 +102,7 @@ export class Renderer {
    */
   constructor(canvas) {
     this.canvas = canvas;
+    canvas.id = 'game-canvas';
 
     /* ----------------------------- WebGL renderer ----------------------------- */
     this.webgl = new THREE.WebGLRenderer({
