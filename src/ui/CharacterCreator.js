@@ -367,14 +367,10 @@ export default class CharacterCreator {
   }
 
   _submit() {
-    if (!this._selected.name) {
-      const defaults = [
-        'Chukwuemeka', 'Oluwaseun', 'Aminu',
-        'Ngozi', 'Fatima', 'Aisha',
-        'Tunde', 'Chioma', 'Emeka', 'Sola',
-      ];
-      this._selected.name =
-        defaults[Math.floor(Math.random() * defaults.length)];
+    if (!this._selected.name ||
+        this._selected.name.trim().length < 2) {
+      this._showNameError();
+      return;
     }
     const result = {
       ...this._selected,
@@ -394,6 +390,66 @@ export default class CharacterCreator {
     if (this._resolve) {
       this._resolve(result);
       this._resolve = null;
+    }
+  }
+
+  _showNameError() {
+    // Find the name input and highlight it
+    const nameInput =
+      this._el?.querySelector('input[type="text"]');
+    if (nameInput) {
+      nameInput.focus();
+      nameInput.style.borderColor = '#E74C3C';
+      nameInput.style.boxShadow =
+        '0 0 8px rgba(231,76,60,0.6)';
+      nameInput.placeholder =
+        'You must enter your name! ✋';
+
+      // Reset border after 2 seconds
+      setTimeout(() => {
+        nameInput.style.borderColor =
+          'rgba(255,215,0,0.3)';
+        nameInput.style.boxShadow = 'none';
+        nameInput.placeholder =
+          'Enter your name...';
+      }, 2000);
+    }
+
+    // Show error message below input
+    let errEl = this._el?.querySelector(
+      '#name-error-msg'
+    );
+    if (!errEl && this._el) {
+      errEl = document.createElement('div');
+      errEl.id = 'name-error-msg';
+      Object.assign(errEl.style, {
+        color:      '#E74C3C',
+        fontSize:   '12px',
+        marginTop:  '-8px',
+        marginBottom: '8px',
+        textAlign:  'center',
+        width:      '100%',
+        maxWidth:   '400px',
+      });
+      // Insert after the name input wrapper
+      const nameWrap =
+        this._el.querySelector('input')
+          ?.parentElement;
+      if (nameWrap?.nextSibling) {
+        this._el.insertBefore(
+          errEl,
+          nameWrap.nextSibling
+        );
+      } else {
+        this._el.appendChild(errEl);
+      }
+    }
+    if (errEl) {
+      errEl.textContent =
+        '⚠️ Oga enter your name first! You cannot start a Lagos life without a name.';
+      setTimeout(() => {
+        errEl.textContent = '';
+      }, 3000);
     }
   }
 
