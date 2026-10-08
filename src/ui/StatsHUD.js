@@ -25,11 +25,11 @@ export default class StatsHUD {
       left:          '12px',
       display:       'flex',
       flexDirection: 'column',
-      gap:           '5px',
+      gap:           '3px',
       zIndex:        '1500',
       pointerEvents: 'none',
       userSelect:    'none',
-      minWidth:      '160px',
+      minWidth:      '130px',
     });
     this._el = el;
 
@@ -40,10 +40,10 @@ export default class StatsHUD {
       background:   'rgba(0,0,0,0.70)',
       border:       '1px solid #FFD700',
       borderRadius: '8px',
-      padding:      '5px 12px',
+      padding:      '3px 8px',
       color:        '#FFD700',
       fontFamily:   'Arial, sans-serif',
-      fontSize:     '13px',
+      fontSize:     '11px',
       fontWeight:   'bold',
       whiteSpace:   'nowrap',
     });
@@ -66,7 +66,7 @@ export default class StatsHUD {
         background:   'rgba(0,0,0,0.70)',
         border:       `1px solid ${color}44`,
         borderRadius: '8px',
-        padding:      '4px 10px',
+        padding:      '3px 7px',
         display:      'flex',
         alignItems:   'center',
         gap:          '6px',
@@ -75,7 +75,7 @@ export default class StatsHUD {
       // Emoji icon
       const icon = document.createElement('span');
       icon.textContent = emoji;
-      icon.style.fontSize = '11px';
+      icon.style.fontSize = '10px';
       icon.style.minWidth = '16px';
       row.appendChild(icon);
 
@@ -83,7 +83,7 @@ export default class StatsHUD {
       const barBg = document.createElement('div');
       Object.assign(barBg.style, {
         flex:         '1',
-        height:       '6px',
+        height:       '5px',
         background:   'rgba(255,255,255,0.12)',
         borderRadius: '3px',
         overflow:     'hidden',
@@ -105,9 +105,9 @@ export default class StatsHUD {
       const valEl = document.createElement('span');
       Object.assign(valEl.style, {
         color:      '#ccc',
-        fontSize:   '10px',
+        fontSize:   '9px',
         fontFamily: 'Arial, sans-serif',
-        minWidth:   '26px',
+        minWidth:   '22px',
         textAlign:  'right',
       });
       valEl.textContent = '100';
@@ -124,10 +124,10 @@ export default class StatsHUD {
       background:   'rgba(0,0,0,0.70)',
       border:       '1px solid rgba(255,255,255,0.15)',
       borderRadius: '8px',
-      padding:      '4px 12px',
+      padding:      '3px 8px',
       color:        '#aaa',
       fontFamily:   'Arial, sans-serif',
-      fontSize:     '11px',
+      fontSize:     '10px',
       whiteSpace:   'nowrap',
     });
     dayEl.textContent = 'Day 1';
