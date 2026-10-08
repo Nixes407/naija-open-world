@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import OrientationGuard from './ui/OrientationGuard.js';
 import MobileControls from './ui/MobileControls.js';
 import FullscreenManager from './ui/FullscreenManager.js';
@@ -213,6 +214,38 @@ async function startPlaying() {
         }
       }
     });
+  }
+
+  // Apply photo to HUD avatar
+  if (charResult.photoURL) {
+    const av =
+      document.getElementById('hud-avatar');
+    if (av) {
+      av.innerHTML = `<img src="${
+        charResult.photoURL
+      }" style="width:100%;height:100%;
+                object-fit:cover;
+                border-radius:50%">`;
+    }
+
+    // Apply photo as texture to 3D head
+    if (player?.mesh) {
+      const tex = new THREE.TextureLoader()
+        .load(charResult.photoURL);
+      player.mesh.traverse(child => {
+        if (!child.isMesh) return;
+        const geo = child.geometry;
+        if (!geo) return;
+        // Target sphere geometry (the head)
+        if (geo.type === 'SphereGeometry' ||
+            geo.parameters?.radius >= 0.15) {
+          child.material =
+            child.material.clone();
+          child.material.map = tex;
+          child.material.needsUpdate = true;
+        }
+      });
+    }
   }
 
   // Log to console for now
