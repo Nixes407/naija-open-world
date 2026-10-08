@@ -41,18 +41,15 @@ if ('ontouchstart' in window ||
   const desktopClock = hudTime;
   if (desktopClock) {
     desktopClock.style.display = 'none';
-    // The clock's panel (label + phase/day row) would otherwise sit directly
-    // under the MENU / MAP buttons, which are pinned to the same corner.
+    // Mobile uses the compact time chip instead of the larger desktop clock.
     const desktopClockPanel = desktopClock.closest('#hud-clock');
     if (desktopClockPanel) desktopClockPanel.style.display = 'none';
   }
 }
 
 const hudPhase = document.getElementById('hud-phase');
-// The legacy desktop-clock day span. Renamed to 'hud-day-legacy' so it no
-// longer collides with the id StatsHUD assigns its own day element - and this
-// lookup MUST keep targeting the static HTML node, because it runs at module
-// load, before StatsHUD has constructed anything.
+// The legacy desktop-clock day span from index.html. This lookup runs at
+// module load, before StatsHUD constructs its compact day element.
 const hudDay = document.getElementById('hud-day-legacy');
 const hudFps = document.getElementById('hud-fps');
 const hudStats = document.getElementById('hud-stats');
@@ -168,7 +165,7 @@ window.Naija = {
 window.addEventListener('resize', () => renderer.resize());
 window.addEventListener('orientationchange', () => renderer.resize());
 
-// The MAP button in MobileControls dispatches this on touchstart.
+// Keep minimap visibility available to UI shortcuts.
 window.addEventListener('naija:toggleMap',
   () => miniMap.toggle()
 );

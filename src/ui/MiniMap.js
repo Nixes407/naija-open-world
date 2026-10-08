@@ -16,8 +16,8 @@ export default class MiniMap {
     el.id = 'mini-map';
     Object.assign(el.style, {
       position:     'fixed',
-      top:          '97px',
-      right:        '12px',
+      top:          '10px',
+      right:        '10px',
       width:        '110px',
       height:       '110px',
       borderRadius: '8px',
@@ -58,6 +58,42 @@ export default class MiniMap {
       pointerEvents: 'none',
     });
     el.appendChild(label);
+
+    const menuBtn = document.createElement('div');
+    menuBtn.id = 'minimap-menu-btn';
+    Object.assign(menuBtn.style, {
+      position: 'absolute',
+      top: '4px',
+      left: '4px',
+      width: '22px',
+      height: '22px',
+      borderRadius: '4px',
+      background: 'rgba(0,0,0,0.7)',
+      border: '1px solid rgba(255,215,0,0.4)',
+      color: '#FFD700',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '12px',
+      cursor: 'pointer',
+      pointerEvents: 'auto',
+      zIndex: '1',
+    });
+    menuBtn.textContent = '≡';
+    menuBtn.addEventListener('click', () => {
+      window.dispatchEvent(
+        new CustomEvent('naija:togglePause')
+      );
+    });
+    menuBtn.addEventListener('touchstart',
+      e => {
+        e.preventDefault();
+        window.dispatchEvent(
+          new CustomEvent('naija:togglePause')
+        );
+      }, { passive: false }
+    );
+    el.appendChild(menuBtn);
 
     document.body.appendChild(el);
   }
