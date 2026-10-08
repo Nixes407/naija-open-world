@@ -322,6 +322,20 @@
         from { opacity: 1;   }
         to   { opacity: 0.3; }
       }
+      @keyframes glow-border {
+        from {
+          box-shadow:
+            0 0 5px rgba(255,215,0,0.3),
+            0 0 10px rgba(255,215,0,0.1);
+          border-color: rgba(255,215,0,0.6);
+        }
+        to {
+          box-shadow:
+            0 0 15px rgba(255,215,0,0.8),
+            0 0 30px rgba(255,215,0,0.4);
+          border-color: #FFD700;
+        }
+      }
     </style>
   </head>
   <body oncontextmenu="return false;">
