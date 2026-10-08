@@ -1136,13 +1136,407 @@ export default class CharacterCreator {
 
     );
 
-    const t = document.createElement('p');
 
-    t.textContent = 'Slide 3 — coming next';
 
-    t.style.color = '#FFD700';
+    const title = document.createElement('h2');
 
-    slide.appendChild(t);
+    title.textContent = '🎨 Create Your Character';
+
+    Object.assign(title.style, {
+
+      fontSize:'clamp(15px,3vw,22px)',
+
+      margin:'0 0 14px', textAlign:'center',
+
+    });
+
+    slide.appendChild(title);
+
+
+
+    // ── Photo upload circle ─────────────────
+
+    const photoWrap =
+
+      document.createElement('div');
+
+    Object.assign(photoWrap.style, {
+
+      display:'flex', flexDirection:'column',
+
+      alignItems:'center', marginBottom:'12px',
+
+    });
+
+
+
+    const photoCircle =
+
+      document.createElement('div');
+
+    photoCircle.id = 'cc-photo-circle';
+
+    Object.assign(photoCircle.style, {
+
+      width:'72px', height:'72px',
+
+      borderRadius:'50%',
+
+      background:'rgba(255,255,255,0.07)',
+
+      border:'2px dashed rgba(255,215,0,0.5)',
+
+      display:'flex', flexDirection:'column',
+
+      alignItems:'center',
+
+      justifyContent:'center',
+
+      cursor:'pointer', overflow:'hidden',
+
+      marginBottom:'5px', position:'relative',
+
+      transition:'border-color 0.2s',
+
+    });
+
+    photoCircle.innerHTML = `
+
+      <span style="font-size:22px">📷</span>
+
+      <span style="font-size:9px;
+
+                   color:rgba(255,215,0,0.6);
+
+                   margin-top:2px">
+
+        Add Photo
+
+      </span>
+
+    `;
+
+
+
+    const fileInput =
+
+      document.createElement('input');
+
+    fileInput.type   = 'file';
+
+    fileInput.accept = 'image/*';
+
+    fileInput.id     = 'cc-photo-input';
+
+    fileInput.style.display = 'none';
+
+
+
+    fileInput.addEventListener('change', e => {
+
+      const file = e.target.files?.[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = ev => {
+
+        const url = ev.target.result;
+
+        this._selected.photoURL = url;
+
+        photoCircle.innerHTML = `
+
+          <img src="${url}"
+
+               style="width:100%;height:100%;
+
+                      object-fit:cover;
+
+                      border-radius:50%">
+
+        `;
+
+        const av =
+
+          document.getElementById('hud-avatar');
+
+        if (av) {
+
+          av.innerHTML = `
+
+            <img src="${url}"
+
+                 style="width:100%;height:100%;
+
+                        object-fit:cover;
+
+                        border-radius:50%">
+
+          `;
+
+        }
+
+      };
+
+      reader.readAsDataURL(file);
+
+    });
+
+
+
+    photoCircle.addEventListener('click',
+
+      () => this._showPhotoPicker(fileInput)
+
+    );
+
+    photoCircle.addEventListener('touchstart',
+
+      e => {
+
+        e.preventDefault();
+
+        this._showPhotoPicker(fileInput);
+
+      }, {passive:false}
+
+    );
+
+
+
+    photoWrap.appendChild(photoCircle);
+
+    photoWrap.appendChild(fileInput);
+
+
+
+    const photoHint =
+
+      document.createElement('div');
+
+    photoHint.textContent =
+
+      'Tap to add your photo (optional)';
+
+    Object.assign(photoHint.style, {
+
+      fontSize:'10px', color:'#555',
+
+    });
+
+    photoWrap.appendChild(photoHint);
+
+    slide.appendChild(photoWrap);
+
+
+
+    // ── Skin tone selector ──────────────────
+
+    const skinRow =
+
+      document.createElement('div');
+
+    Object.assign(skinRow.style, {
+
+      display:'flex', alignItems:'center',
+
+      gap:'7px', marginBottom:'12px',
+
+    });
+
+    const skinLabel =
+
+      document.createElement('span');
+
+    skinLabel.textContent = 'Skin:';
+
+    Object.assign(skinLabel.style, {
+
+      fontSize:'12px', color:'#888',
+
+    });
+
+    skinRow.appendChild(skinLabel);
+
+
+
+    SKIN_TONES.forEach(tone => {
+
+      const dot = document.createElement('div');
+
+      dot.title = tone.label;
+
+      Object.assign(dot.style, {
+
+        width:'24px', height:'24px',
+
+        borderRadius:'50%',
+
+        background:tone.color,
+
+        cursor:'pointer',
+
+        border:
+
+          this._selected.skinTone.id===tone.id
+
+            ? '3px solid #FFD700'
+
+            : '3px solid transparent',
+
+        transition:'all 0.2s',
+
+        flexShrink:'0',
+
+      });
+
+      dot.addEventListener('click', () => {
+
+        this._selected.skinTone = tone;
+
+        skinRow.querySelectorAll('div')
+
+          .forEach(d => {
+
+            d.style.border =
+
+              '3px solid transparent';
+
+            d.style.transform = 'scale(1)';
+
+          });
+
+        dot.style.border = '3px solid #FFD700';
+
+        dot.style.transform = 'scale(1.15)';
+
+      });
+
+      skinRow.appendChild(dot);
+
+    });
+
+    slide.appendChild(skinRow);
+
+
+
+    // ── Appearance placeholder ──────────────
+
+    const placeholder =
+
+      document.createElement('div');
+
+    Object.assign(placeholder.style, {
+
+      width:'100%', maxWidth:'480px',
+
+      padding:'10px',
+
+      background:'rgba(255,255,255,0.03)',
+
+      borderRadius:'8px',
+
+      color:'#444', fontSize:'11px',
+
+      textAlign:'center', marginBottom:'12px',
+
+    });
+
+    placeholder.textContent =
+
+      'Hair • Beard • Clothes • Shoes — Coming soon';
+
+    slide.appendChild(placeholder);
+
+
+
+    // ── Start button ────────────────────────
+
+    const startBtn =
+
+      document.createElement('button');
+
+    startBtn.id = 'cc-start-btn';
+
+    startBtn.textContent = '🚀 Start My Lagos Life';
+
+    Object.assign(startBtn.style, {
+
+      padding:'13px 32px',
+
+      fontSize:'clamp(13px,2.5vw,16px)',
+
+      fontWeight:'bold',
+
+      background:'#FFD700', color:'#000',
+
+      border:'none', borderRadius:'30px',
+
+      cursor:'pointer',
+
+      boxShadow:
+
+        '0 4px 20px rgba(255,215,0,0.4)',
+
+      transition:'transform 0.1s',
+
+    });
+
+    startBtn.addEventListener('mouseenter',
+
+      () => {
+
+        startBtn.style.transform = 'scale(1.04)';
+
+      }
+
+    );
+
+    startBtn.addEventListener('mouseleave',
+
+      () => {
+
+        startBtn.style.transform = 'scale(1)';
+
+      }
+
+    );
+
+    startBtn.addEventListener('click',
+
+      () => this._submit()
+
+    );
+
+    startBtn.addEventListener('touchstart',
+
+      e => {
+
+        e.preventDefault();
+
+        this._submit();
+
+      }, {passive:false}
+
+    );
+
+    slide.appendChild(startBtn);
+
+
+
+    slide.appendChild(
+
+      this._makeBackBtn(
+
+        () => this._goToSlide(1)
+
+      )
+
+    );
+
+
 
     return slide;
 
@@ -1157,6 +1551,376 @@ export default class CharacterCreator {
     this._track.style.transform =
 
       `translateX(-${index * (100/3)}%)`;
+
+    if (index === 2) {
+
+      setTimeout(
+
+        () => this._showAutoGeneratePopup(),
+
+        420
+
+      );
+
+    }
+
+  }
+
+
+
+  _showPhotoPicker(fileInput) {
+
+    document.getElementById('cc-photo-picker')
+
+      ?.remove();
+
+    const picker =
+
+      document.createElement('div');
+
+    picker.id = 'cc-photo-picker';
+
+    Object.assign(picker.style, {
+
+      position:'fixed', bottom:'0',
+
+      left:'0', right:'0',
+
+      background:'rgba(10,10,26,0.98)',
+
+      border:
+
+        '1px solid rgba(255,215,0,0.3)',
+
+      borderRadius:'16px 16px 0 0',
+
+      padding:'20px', zIndex:'21000',
+
+      display:'flex', flexDirection:'column',
+
+      gap:'10px', fontFamily:'Arial,sans-serif',
+
+    });
+
+    const ptitle =
+
+      document.createElement('div');
+
+    ptitle.textContent = 'Add your photo';
+
+    Object.assign(ptitle.style, {
+
+      color:'#FFD700', fontSize:'15px',
+
+      fontWeight:'bold', textAlign:'center',
+
+      marginBottom:'4px',
+
+    });
+
+    picker.appendChild(ptitle);
+
+
+
+    const mkBtn = (text, onClick) => {
+
+      const b = document.createElement('button');
+
+      b.textContent = text;
+
+      Object.assign(b.style, {
+
+        padding:'13px', fontSize:'14px',
+
+        background:'rgba(255,215,0,0.1)',
+
+        color:'#FFD700',
+
+        border:'1px solid rgba(255,215,0,0.3)',
+
+        borderRadius:'10px',
+
+        cursor:'pointer', width:'100%',
+
+      });
+
+      b.addEventListener('click', onClick);
+
+      return b;
+
+    };
+
+
+
+    picker.appendChild(mkBtn(
+
+      '📸 Take Photo', () => {
+
+        picker.remove();
+
+        fileInput.setAttribute(
+
+          'capture','environment'
+
+        );
+
+        fileInput.click();
+
+      }
+
+    ));
+
+    picker.appendChild(mkBtn(
+
+      '🖼️ Choose from Gallery', () => {
+
+        picker.remove();
+
+        fileInput.removeAttribute('capture');
+
+        fileInput.click();
+
+      }
+
+    ));
+
+
+
+    const cancel =
+
+      document.createElement('button');
+
+    cancel.textContent = 'Cancel';
+
+    Object.assign(cancel.style, {
+
+      padding:'11px', fontSize:'13px',
+
+      background:'transparent', color:'#666',
+
+      border:'none', cursor:'pointer',
+
+      width:'100%',
+
+    });
+
+    cancel.addEventListener('click',
+
+      () => picker.remove()
+
+    );
+
+    picker.appendChild(cancel);
+
+    document.body.appendChild(picker);
+
+  }
+
+
+
+  _showAutoGeneratePopup() {
+
+    if (document.getElementById(
+
+      'cc-autogen-popup'
+
+    )) return;
+
+
+
+    const overlay =
+
+      document.createElement('div');
+
+    overlay.id = 'cc-autogen-popup';
+
+    Object.assign(overlay.style, {
+
+      position:'fixed', inset:'0',
+
+      background:'rgba(0,0,0,0.85)',
+
+      zIndex:'21000', display:'flex',
+
+      alignItems:'center',
+
+      justifyContent:'center',
+
+      padding:'20px',
+
+      fontFamily:'Arial,sans-serif',
+
+    });
+
+
+
+    const box = document.createElement('div');
+
+    Object.assign(box.style, {
+
+      background:'#0f0f1e',
+
+      border:'2px solid #FFD700',
+
+      borderRadius:'16px', padding:'24px',
+
+      maxWidth:'300px', width:'100%',
+
+      textAlign:'center',
+
+    });
+
+
+
+    const origin =
+
+      ORIGINS[this._selected.originId];
+
+    box.innerHTML = `
+
+      <div style="font-size:30px;
+
+                  margin-bottom:10px">🎮</div>
+
+      <div style="font-size:15px;
+
+                  font-weight:bold;
+
+                  color:#FFD700;
+
+                  margin-bottom:8px">
+
+        Character Style
+
+      </div>
+
+      <div style="font-size:12px;color:#aaa;
+
+                  line-height:1.5;
+
+                  margin-bottom:18px">
+
+        Want us to build your character
+
+        based on your
+
+        <strong style="color:${origin.color}">
+
+          ${origin.name}
+
+        </strong>
+
+        personality?
+
+      </div>
+
+    `;
+
+
+
+    const autoBtn =
+
+      document.createElement('button');
+
+    autoBtn.textContent = '✨ Auto-Generate';
+
+    Object.assign(autoBtn.style, {
+
+      display:'block', width:'100%',
+
+      padding:'12px', marginBottom:'8px',
+
+      fontSize:'14px', fontWeight:'bold',
+
+      background:'#FFD700', color:'#000',
+
+      border:'none', borderRadius:'10px',
+
+      cursor:'pointer',
+
+    });
+
+    autoBtn.addEventListener('click', () => {
+
+      this._autoGenerate();
+
+      overlay.remove();
+
+    });
+
+    box.appendChild(autoBtn);
+
+
+
+    const manualBtn =
+
+      document.createElement('button');
+
+    manualBtn.textContent = '🎨 Manual Creation';
+
+    Object.assign(manualBtn.style, {
+
+      display:'block', width:'100%',
+
+      padding:'12px', fontSize:'13px',
+
+      background:'transparent',
+
+      color:'#FFD700',
+
+      border:'1px solid rgba(255,215,0,0.4)',
+
+      borderRadius:'10px', cursor:'pointer',
+
+    });
+
+    manualBtn.addEventListener('click', () => {
+
+      this._selected.autoGenerated = false;
+
+      overlay.remove();
+
+    });
+
+    box.appendChild(manualBtn);
+
+
+
+    overlay.appendChild(box);
+
+    document.body.appendChild(overlay);
+
+  }
+
+
+
+  _autoGenerate() {
+
+    const origin =
+
+      ORIGINS[this._selected.originId];
+
+    const look = origin.autoLook;
+
+    this._selected.hairStyle  = look.hair;
+
+    this._selected.hairColor  = look.hairColor;
+
+    this._selected.beard      = look.beard;
+
+    this._selected.clothes    = look.clothes;
+
+    this._selected.shoes      = look.shoes;
+
+    this._selected.autoGenerated = true;
+
+    this._selected.skinTone   = SKIN_TONES[2];
+
+    console.log(
+
+      'Auto-generated:', this._selected
+
+    );
 
   }
 
