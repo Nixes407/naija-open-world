@@ -804,15 +804,323 @@ export default class CharacterCreator {
 
     );
 
-    const t = document.createElement('p');
 
-    t.textContent = 'Slide 2 — coming next';
 
-    t.style.color = '#FFD700';
+    const title = document.createElement('h2');
 
-    slide.appendChild(t);
+    title.textContent = '🏙️ Who are you in Lagos?';
+
+    Object.assign(title.style, {
+
+      fontSize:'clamp(16px,3vw,24px)',
+
+      margin:'0 0 14px', textAlign:'center',
+
+    });
+
+    slide.appendChild(title);
+
+
+
+    // Origin cards grid
+
+    const grid = document.createElement('div');
+
+    Object.assign(grid.style, {
+
+      display:'grid',
+
+      gridTemplateColumns:
+
+        'repeat(auto-fit,minmax(120px,1fr))',
+
+      gap:'8px', width:'100%', maxWidth:'660px',
+
+    });
+
+
+
+    Object.values(ORIGINS).forEach(origin => {
+
+      const card = document.createElement('div');
+
+      card.dataset.oid = origin.id;
+
+      const sel =
+
+        this._selected.originId === origin.id;
+
+      Object.assign(card.style, {
+
+        background: sel
+
+          ? 'rgba(255,215,0,0.12)'
+
+          : 'rgba(255,255,255,0.04)',
+
+        border: sel
+
+          ? `2px solid ${origin.color}`
+
+          : '2px solid rgba(255,255,255,0.1)',
+
+        borderRadius:'10px',
+
+        padding:'10px',
+
+        cursor:'pointer',
+
+        transition:'all 0.2s',
+
+        userSelect:'none',
+
+      });
+
+      card.innerHTML = `
+
+        <div style="font-size:22px;
+
+                    margin-bottom:4px">
+
+          ${origin.emoji}
+
+        </div>
+
+        <div style="font-size:13px;
+
+                    font-weight:bold;
+
+                    color:${origin.color};
+
+                    margin-bottom:3px">
+
+          ${origin.name}
+
+        </div>
+
+        <div style="font-size:10px;
+
+                    color:#888;
+
+                    line-height:1.3;
+
+                    margin-bottom:6px">
+
+          ${origin.description}
+
+        </div>
+
+        <div style="font-size:10px;color:#555">
+
+          ₦${origin.startMoney.toLocaleString()}
+
+        </div>
+
+        <div style="font-size:10px;color:#555">
+
+          ${origin.difficulty}
+
+        </div>
+
+      `;
+
+      card.addEventListener('click', () => {
+
+        this._selected.originId = origin.id;
+
+        grid.querySelectorAll('[data-oid]')
+
+          .forEach(c => {
+
+            const o = ORIGINS[c.dataset.oid];
+
+            const s =
+
+              c.dataset.oid === origin.id;
+
+            c.style.background = s
+
+              ? 'rgba(255,215,0,0.12)'
+
+              : 'rgba(255,255,255,0.04)';
+
+            c.style.border = s
+
+              ? `2px solid ${o.color}`
+
+              : '2px solid rgba(255,255,255,0.1)';
+
+          });
+
+        this._updateStatsPreview(statsEl);
+
+      });
+
+      grid.appendChild(card);
+
+    });
+
+    slide.appendChild(grid);
+
+
+
+    // Stats preview panel
+
+    const statsEl = document.createElement('div');
+
+    statsEl.id = 'cc-stats-preview';
+
+    Object.assign(statsEl.style, {
+
+      marginTop:'10px', padding:'10px 14px',
+
+      background:'rgba(255,255,255,0.04)',
+
+      borderRadius:'8px',
+
+      width:'100%', maxWidth:'660px',
+
+      fontSize:'11px',
+
+    });
+
+    this._updateStatsPreview(statsEl);
+
+    slide.appendChild(statsEl);
+
+
+
+    // Buttons row
+
+    const btnRow = document.createElement('div');
+
+    Object.assign(btnRow.style, {
+
+      display:'flex', gap:'12px',
+
+      alignItems:'center', marginTop:'4px',
+
+    });
+
+    btnRow.appendChild(
+
+      this._makeBackBtn(() => this._goToSlide(0))
+
+    );
+
+    btnRow.appendChild(
+
+      this._makeContinueBtn(
+
+        () => this._goToSlide(2)
+
+      )
+
+    );
+
+    slide.appendChild(btnRow);
+
+
 
     return slide;
+
+  }
+
+
+
+  _updateStatsPreview(el) {
+
+    const origin =
+
+      ORIGINS[this._selected.originId];
+
+    const s = origin.stats;
+
+    const bars = Object.entries(s).map(
+
+      ([k, v]) => {
+
+        const c =
+
+          v >= 75 ? '#2ECC71' :
+
+          v >= 45 ? '#FFD700' : '#E74C3C';
+
+        return `
+
+          <div style="display:flex;gap:6px;
+
+                      align-items:center;
+
+                      margin-bottom:4px">
+
+            <span style="color:#888;
+
+                         font-size:10px;
+
+                         min-width:70px;
+
+                         text-transform:capitalize">
+
+              ${k}
+
+            </span>
+
+            <div style="flex:1;height:5px;
+
+                        background:rgba(255,255,255,0.1);
+
+                        border-radius:3px;
+
+                        overflow:hidden">
+
+              <div style="width:${v}%;
+
+                          height:100%;
+
+                          background:${c};
+
+                          border-radius:3px">
+
+              </div>
+
+            </div>
+
+            <span style="color:${c};
+
+                         font-size:10px;
+
+                         min-width:28px">
+
+              ${v}
+
+            </span>
+
+          </div>`;
+
+      }
+
+    ).join('');
+
+    el.innerHTML = `
+
+      <div style="color:${origin.color};
+
+                  font-weight:bold;
+
+                  margin-bottom:8px;
+
+                  font-size:12px">
+
+        ${origin.emoji} ${origin.name} —
+
+        Starting in ${origin.startArea}
+
+      </div>
+
+      ${bars}
+
+    `;
 
   }
 
