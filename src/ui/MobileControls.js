@@ -286,8 +286,8 @@ export default class MobileControls {
     };
 
     this.btnMenu = makeTopBtn('≡\nMENU', {
-      top:  '12px',
-      left: '12px',
+      top:   '12px',
+      right: '12px',
     });
     this.btnMenu.addEventListener('touchstart', e => {
       e.preventDefault();
@@ -297,8 +297,8 @@ export default class MobileControls {
     }, { passive: false });
 
     this.btnMap = makeTopBtn('🗺\nMAP', {
-      top:  '12px',
-      left: '60px',
+      top:  '190px',
+      left: '12px',
     });
     this.btnMap.addEventListener('touchstart', e => {
       e.preventDefault();
@@ -310,7 +310,7 @@ export default class MobileControls {
     this.timeChip = document.createElement('div');
     Object.assign(this.timeChip.style, {
       position:       'fixed',
-      top:            '12px',
+      top:            '60px',
       right:          '12px',
       padding:        '6px 12px',
       borderRadius:   '20px',

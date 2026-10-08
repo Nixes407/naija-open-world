@@ -16,240 +16,126 @@ export default class StatsHUD {
 
 
   _build() {
-
     // ── Root panel ──────────────────────────
-
     const el = document.createElement('div');
-
     el.id = 'stats-hud';
-
     Object.assign(el.style, {
-
       position:      'fixed',
-
-      bottom:        '20px',
-
-      left:          '50%',
-
-      transform:     'translateX(-50%)',
-
+      top:           '12px',
+      left:          '12px',
       display:       'flex',
-
-      flexDirection: 'row',
-
-      gap:           '8px',
-
+      flexDirection: 'column',
+      gap:           '5px',
       zIndex:        '1500',
-
       pointerEvents: 'none',
-
       userSelect:    'none',
-
-      flexWrap:      'wrap',
-
-      justifyContent:'center',
-
-      maxWidth:      '420px',
-
+      minWidth:      '160px',
     });
-
     this._el = el;
 
-
     // ── Money display ────────────────────────
-
     const moneyEl = document.createElement('div');
-
     moneyEl.id = 'hud-money';
-
     Object.assign(moneyEl.style, {
-
-      background:   'rgba(0,0,0,0.65)',
-
+      background:   'rgba(0,0,0,0.70)',
       border:       '1px solid #FFD700',
-
-      borderRadius: '20px',
-
-      padding:      '5px 14px',
-
+      borderRadius: '8px',
+      padding:      '5px 12px',
       color:        '#FFD700',
-
       fontFamily:   'Arial, sans-serif',
-
-      fontSize:     '14px',
-
+      fontSize:     '13px',
       fontWeight:   'bold',
-
       whiteSpace:   'nowrap',
-
     });
-
-    moneyEl.textContent = '₦0.00';
-
+    moneyEl.textContent = '₦ ---';
     this._els.money = moneyEl;
-
     el.appendChild(moneyEl);
 
-
-    // ── Stat bars config ─────────────────────
-
+    // ── Stat bars ────────────────────────────
+    // Phone battery REMOVED from bars
     const bars = [
-
-      { key:'health',     emoji:'❤️',  color:'#E74C3C' },
-
-      { key:'energy',     emoji:'⚡',  color:'#F39C12' },
-
-      { key:'hunger',     emoji:'🍖',  color:'#E67E22' },
-
-      { key:'sanity',     emoji:'🧠',  color:'#9B59B6' },
-
-      { key:'phoneBattery', emoji:'📱', color:'#2ECC71' },
-
+      { key:'health',  emoji:'❤️', color:'#E74C3C' },
+      { key:'energy',  emoji:'⚡', color:'#F39C12' },
+      { key:'hunger',  emoji:'🍖', color:'#E67E22' },
+      { key:'sanity',  emoji:'🧠', color:'#9B59B6' },
     ];
 
-
     bars.forEach(({ key, emoji, color }) => {
-
-      const wrap = document.createElement('div');
-
-      Object.assign(wrap.style, {
-
-        background:   'rgba(0,0,0,0.65)',
-
-        border:       `1px solid ${color}`,
-
-        borderRadius: '20px',
-
-        padding:      '5px 10px',
-
+      const row = document.createElement('div');
+      Object.assign(row.style, {
+        background:   'rgba(0,0,0,0.70)',
+        border:       `1px solid ${color}44`,
+        borderRadius: '8px',
+        padding:      '4px 10px',
         display:      'flex',
-
         alignItems:   'center',
-
-        gap:          '5px',
-
-        minWidth:     '80px',
-
+        gap:          '6px',
       });
 
-
+      // Emoji icon
       const icon = document.createElement('span');
-
       icon.textContent = emoji;
+      icon.style.fontSize = '11px';
+      icon.style.minWidth = '16px';
+      row.appendChild(icon);
 
-      icon.style.fontSize = '12px';
-
-      wrap.appendChild(icon);
-
-
+      // Bar background
       const barBg = document.createElement('div');
-
       Object.assign(barBg.style, {
-
-        width:        '50px',
-
+        flex:         '1',
         height:       '6px',
-
-        background:   'rgba(255,255,255,0.15)',
-
+        background:   'rgba(255,255,255,0.12)',
         borderRadius: '3px',
-
         overflow:     'hidden',
-
       });
 
-
+      // Bar fill
       const barFill = document.createElement('div');
-
       Object.assign(barFill.style, {
-
         width:        '100%',
-
         height:       '100%',
-
         background:   color,
-
         borderRadius: '3px',
-
         transition:   'width 0.5s ease',
-
       });
-
       barBg.appendChild(barFill);
+      row.appendChild(barBg);
 
-      wrap.appendChild(barBg);
-
-
+      // Value text
       const valEl = document.createElement('span');
-
       Object.assign(valEl.style, {
-
-        color:      '#fff',
-
+        color:      '#ccc',
         fontSize:   '10px',
-
         fontFamily: 'Arial, sans-serif',
-
-        minWidth:   '24px',
-
+        minWidth:   '26px',
         textAlign:  'right',
-
       });
-
       valEl.textContent = '100';
-
-      wrap.appendChild(valEl);
-
+      row.appendChild(valEl);
 
       this._els[key] = { fill: barFill, val: valEl };
-
-      el.appendChild(wrap);
-
+      el.appendChild(row);
     });
-
 
     // ── Day counter ──────────────────────────
-
     const dayEl = document.createElement('div');
-
     dayEl.id = 'hud-day';
-
     Object.assign(dayEl.style, {
-
-      background:   'rgba(0,0,0,0.65)',
-
-      border:       '1px solid rgba(255,255,255,0.2)',
-
-      borderRadius: '20px',
-
-      padding:      '5px 14px',
-
+      background:   'rgba(0,0,0,0.70)',
+      border:       '1px solid rgba(255,255,255,0.15)',
+      borderRadius: '8px',
+      padding:      '4px 12px',
       color:        '#aaa',
-
       fontFamily:   'Arial, sans-serif',
-
-      fontSize:     '12px',
-
+      fontSize:     '11px',
       whiteSpace:   'nowrap',
-
     });
-
     dayEl.textContent = 'Day 1';
-
     this._els.day = dayEl;
-
     el.appendChild(dayEl);
 
-
-
     document.body.appendChild(el);
-
-
-
-    // Hide until game starts
-
     el.style.display = 'none';
-
   }
 
 
@@ -295,7 +181,7 @@ export default class StatsHUD {
 
     ['health','energy','hunger',
 
-     'sanity','phoneBattery'].forEach(k => {
+     'sanity'].forEach(k => {
 
       this._updateBar(k);
 
@@ -388,12 +274,6 @@ export default class StatsHUD {
       this._state.modStat('energy',  -0.5);
 
       this._state.modStat('thirst',  -1.5);
-
-
-
-      // Phone battery drains too
-
-      this._state.modStat('phoneBattery', -0.3);
 
 
 
