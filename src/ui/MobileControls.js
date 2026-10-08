@@ -256,62 +256,11 @@ export default class MobileControls {
   }
 
   _buildTopButtons() {
-    const makeTopBtn = (label, extraStyles) => {
-      const btn = document.createElement('div');
-      Object.assign(btn.style, {
-        position:       'fixed',
-        width:          '32px',
-        height:         '32px',
-        borderRadius:   '8px',
-        background:     'rgba(0,0,0,0.55)',
-        border:         '1px solid rgba(255,255,255,0.25)',
-        color:          '#FFD700',
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        fontSize:       '9px',
-        fontFamily:     'Arial, sans-serif',
-        fontWeight:     'bold',
-        pointerEvents:  'auto',
-        touchAction:    'none',
-        userSelect:     'none',
-        cursor:         'pointer',
-        textAlign:      'center',
-        lineHeight:     '1.2',
-        zIndex:         '1001',
-        ...extraStyles,
-      });
-      btn.textContent = label;
-      return btn;
-    };
-
-    this.btnMenu = makeTopBtn('≡\nMENU', {
-      top:   '12px',
-      right: '12px',
-    });
-    this.btnMenu.addEventListener('touchstart', e => {
-      e.preventDefault();
-      window.dispatchEvent(
-        new CustomEvent('naija:togglePause')
-      );
-    }, { passive: false });
-
-    this.btnMap = makeTopBtn('🗺\nMAP', {
-      top:  '190px',
-      left: '12px',
-    });
-    this.btnMap.addEventListener('touchstart', e => {
-      e.preventDefault();
-      window.dispatchEvent(
-        new CustomEvent('naija:toggleMap')
-      );
-    }, { passive: false });
-
     this.timeChip = document.createElement('div');
     Object.assign(this.timeChip.style, {
       position:       'fixed',
-      top:            '60px',
-      right:          '12px',
+      top:            '10px',
+      right:          '125px',
       padding:        '4px 8px',
       borderRadius:   '20px',
       background:     'rgba(0,0,0,0.55)',
@@ -325,9 +274,6 @@ export default class MobileControls {
       zIndex:         '1001',
     });
     this.timeChip.textContent = '00:00 AM';
-
-    this.root.appendChild(this.btnMenu);
-    this.root.appendChild(this.btnMap);
     this.root.appendChild(this.timeChip);
   }
 
