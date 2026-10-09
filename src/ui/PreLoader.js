@@ -12,8 +12,8 @@ export default class PreLoader {
   }
 
   _build() {
-    const style = document.createElement('style');
-    style.textContent = `
+    this._style = document.createElement('style');
+    this._style.textContent = `
       @keyframes phone-rotate {
         0%,40%  { transform: rotate(0deg);  }
         60%,100%{ transform: rotate(90deg); }
@@ -27,7 +27,7 @@ export default class PreLoader {
         to   { opacity:0; }
       }
     `;
-    document.head.appendChild(style);
+    document.head.appendChild(this._style);
 
     const el = document.createElement('div');
     el.id = 'pre-loader';
@@ -151,7 +151,13 @@ export default class PreLoader {
       };
 
       if (goFS) {
-        goFS().then(afterFS).catch(afterFS);
+        let result;
+        try { result = goFS(); } catch(e) {}
+        if (result && typeof result.then === 'function') {
+          result.then(afterFS).catch(afterFS);
+        } else {
+          afterFS();
+        }
       } else {
         afterFS();
       }
@@ -160,7 +166,7 @@ export default class PreLoader {
     el.addEventListener('click', dismiss,
       {once:true}
     );
-    el.addEventListener('touchstart', e => {
+    el.addEventListener('touchend', e => {
       e.preventDefault();
       dismiss();
     }, {once:true, passive:false});
@@ -171,5 +177,7 @@ export default class PreLoader {
   destroy() {
     this._el?.remove();
     this._el = null;
+    this._style?.remove();
+    this._style = null;
   }
 }
