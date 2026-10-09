@@ -382,25 +382,29 @@ export default class CharacterCreator {
 
     Object.assign(div.style, {
 
-      width:'calc(100% / 3)',
+      width:          'calc(100% / 3)',
 
-      height:'100%',
+      height:         '100%',
 
-      display:'flex',
+      display:        'flex',
 
-      flexDirection:'column',
+      flexDirection:  'column',
 
-      alignItems:'center',
+      alignItems:     'center',
 
-      justifyContent:'center',
+      justifyContent: 'flex-start',
 
-      padding:'20px',
+      padding:        '8px 14px',
 
-      boxSizing:'border-box',
+      boxSizing:      'border-box',
 
-      overflowY:'auto',
+      overflowY:      'auto',
 
-      color:'#FFD700',
+      overflowX:      'hidden',
+
+      color:          '#FFD700',
+
+      scrollbarWidth: 'none',
 
     });
 
@@ -418,7 +422,7 @@ export default class CharacterCreator {
 
       display:'flex', gap:'8px',
 
-      marginBottom:'20px',
+      marginBottom:'6px',
 
     });
 
@@ -428,9 +432,9 @@ export default class CharacterCreator {
 
       Object.assign(dot.style, {
 
-        width: i===active ? '20px' : '8px',
+        width: i===active ? '14px' : '6px',
 
-        height:'8px', borderRadius:'4px',
+        height:'5px', borderRadius:'4px',
 
         background: i===active
 
@@ -458,9 +462,9 @@ export default class CharacterCreator {
 
     Object.assign(btn.style, {
 
-      marginTop:'20px', padding:'12px 32px',
+      marginTop:'8px', padding:'9px 22px',
 
-      fontSize:'15px', fontWeight:'bold',
+      fontSize:'13px', fontWeight:'bold',
 
       background:'transparent',
 
@@ -518,9 +522,9 @@ export default class CharacterCreator {
 
     Object.assign(btn.style, {
 
-      marginTop:'10px', padding:'8px 20px',
+      marginTop:'4px', padding:'5px 14px',
 
-      fontSize:'13px',
+      fontSize:'11px',
 
       background:'transparent',
 
@@ -814,7 +818,7 @@ export default class CharacterCreator {
 
       fontSize:'clamp(16px,3vw,24px)',
 
-      margin:'0 0 14px', textAlign:'center',
+      margin:'3px 0 7px', textAlign:'center',
 
     });
 
@@ -832,9 +836,9 @@ export default class CharacterCreator {
 
       gridTemplateColumns:
 
-        'repeat(auto-fit,minmax(120px,1fr))',
+        'repeat(5,1fr)',
 
-      gap:'8px', width:'100%', maxWidth:'660px',
+      gap:'4px', width:'100%', maxWidth:'660px',
 
     });
 
@@ -878,47 +882,37 @@ export default class CharacterCreator {
 
       card.innerHTML = `
 
-        <div style="font-size:22px;
+        <div style="font-size:17px;
 
-                    margin-bottom:4px">
+                    margin-bottom:2px">
 
           ${origin.emoji}
 
         </div>
 
-        <div style="font-size:13px;
+        <div style="font-size:11px;
 
                     font-weight:bold;
 
                     color:${origin.color};
 
-                    margin-bottom:3px">
+                    margin-bottom:1px">
 
           ${origin.name}
 
         </div>
 
-        <div style="font-size:10px;
-
-                    color:#888;
-
-                    line-height:1.3;
-
-                    margin-bottom:6px">
-
-          ${origin.description}
-
-        </div>
-
-        <div style="font-size:10px;color:#555">
-
-          ₦${origin.startMoney.toLocaleString()}
-
-        </div>
-
-        <div style="font-size:10px;color:#555">
+        <div style="font-size:9px;color:#555">
 
           ${origin.difficulty}
+
+        </div>
+
+        <div style="font-size:9px;color:#444">
+
+          ${'\u20A6'}${(origin.startMoney/1000)
+
+            .toFixed(0)}k
 
         </div>
 
@@ -972,7 +966,7 @@ export default class CharacterCreator {
 
     Object.assign(statsEl.style, {
 
-      marginTop:'10px', padding:'10px 14px',
+      marginTop:'5px', padding:'5px 8px',
 
       background:'rgba(255,255,255,0.04)',
 
@@ -980,7 +974,7 @@ export default class CharacterCreator {
 
       width:'100%', maxWidth:'660px',
 
-      fontSize:'11px',
+      fontSize:'10px',
 
     });
 
@@ -1048,17 +1042,17 @@ export default class CharacterCreator {
 
         return `
 
-          <div style="display:flex;gap:6px;
+          <div style="display:flex;gap:4px;
 
                       align-items:center;
 
-                      margin-bottom:4px">
+                      margin-bottom:2px">
 
-            <span style="color:#888;
+            <span style="color:#666;
 
-                         font-size:10px;
+                         font-size:9px;
 
-                         min-width:70px;
+                         min-width:58px;
 
                          text-transform:capitalize">
 
@@ -1066,11 +1060,11 @@ export default class CharacterCreator {
 
             </span>
 
-            <div style="flex:1;height:5px;
+            <div style="flex:1;height:4px;
 
-                        background:rgba(255,255,255,0.1);
+                        background:rgba(255,255,255,0.08);
 
-                        border-radius:3px;
+                        border-radius:2px;
 
                         overflow:hidden">
 
@@ -1080,7 +1074,7 @@ export default class CharacterCreator {
 
                           background:${c};
 
-                          border-radius:3px">
+                          border-radius:2px">
 
               </div>
 
@@ -1088,9 +1082,9 @@ export default class CharacterCreator {
 
             <span style="color:${c};
 
-                         font-size:10px;
+                         font-size:9px;
 
-                         min-width:28px">
+                         min-width:20px">
 
               ${v}
 
@@ -1108,17 +1102,15 @@ export default class CharacterCreator {
 
                   font-weight:bold;
 
-                  margin-bottom:8px;
+                  margin-bottom:3px;
 
-                  font-size:12px">
+                  font-size:10px">
 
         ${origin.emoji} ${origin.name} —
 
-        Starting in ${origin.startArea}
+        ${origin.startArea}
 
-      </div>
-
-      ${bars}
+      </div>${bars}
 
     `;
 
