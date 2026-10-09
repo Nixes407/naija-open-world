@@ -50,7 +50,19 @@ export default class OrientationGuard {
     }
   }
 
+  pauseLock() {
+    this._paused = true;
+  }
+
+  resumeLock() {
+    this._paused = false;
+    setTimeout(() => {
+      this._requestFullscreenAndLock();
+    }, 600);
+  }
+
   _requestFullscreenAndLock() {
+    if (this._paused) return;
     const el = document.documentElement;
     const goFS =
       el.requestFullscreen?.bind(el) ||
@@ -76,6 +88,7 @@ export default class OrientationGuard {
   }
 
   _tryLock() {
+    if (this._paused) return;
     if (screen.orientation?.lock) {
       screen.orientation.lock('landscape')
         .catch(() => {

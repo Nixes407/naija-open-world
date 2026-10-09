@@ -68,6 +68,14 @@ const player = new CharacterController({
 });
 const orientationGuard = new OrientationGuard();
 orientationGuard.startListening();
+window.addEventListener(
+  'naija:pauseOrientation',
+  () => orientationGuard.pauseLock()
+);
+window.addEventListener(
+  'naija:resumeOrientation',
+  () => orientationGuard.resumeLock()
+);
 
 // Self-contained: builds its own top-centre toggle button and listens for
 // fullscreenchange to keep the icon in sync. It also receives the
@@ -176,6 +184,15 @@ window.addEventListener('naija:toggleMap',
 /* -------------------------------------------------------------------------- */
 
 async function startPlaying() {
+  if (window._gameStarting) {
+    // Already started. A click here is the resume path (Escape re-shows
+    // the overlay): only re-capture the mouse. Never re-open the
+    // character creator, which would reset its slide.
+    overlay.classList.add('hidden');
+    input.requestPointerLock();
+    return;
+  }
+  window._gameStarting = true;
   overlay.classList.add('hidden');
   // The mobile look zone is built with pointer-events:none precisely so it
   // cannot swallow the tap that starts the game. Now that the overlay is out

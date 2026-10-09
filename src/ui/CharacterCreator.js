@@ -1270,9 +1270,27 @@ export default class CharacterCreator {
 
         }
 
+        window.dispatchEvent(
+
+          new CustomEvent('naija:resumeOrientation')
+
+        );
+
       };
 
       reader.readAsDataURL(file);
+
+    });
+
+
+
+    fileInput.addEventListener('cancel', () => {
+
+      window.dispatchEvent(
+
+        new CustomEvent('naija:resumeOrientation')
+
+      );
 
     });
 
@@ -1656,6 +1674,12 @@ export default class CharacterCreator {
 
         );
 
+        window.dispatchEvent(
+
+          new CustomEvent('naija:pauseOrientation')
+
+        );
+
         fileInput.click();
 
       }
@@ -1669,6 +1693,12 @@ export default class CharacterCreator {
         picker.remove();
 
         fileInput.removeAttribute('capture');
+
+        window.dispatchEvent(
+
+          new CustomEvent('naija:pauseOrientation')
+
+        );
 
         fileInput.click();
 
