@@ -17,6 +17,7 @@ import CharacterCreator from './ui/CharacterCreator.js';
 import PlayerState from './systems/PlayerState.js';
 import StatsHUD from './ui/StatsHUD.js';
 import MiniMap from './ui/MiniMap.js';
+import PreLoader from './ui/PreLoader.js';
 
 /**
  * main.js
@@ -156,6 +157,10 @@ const miniMap = new MiniMap(
   worldBuilder
 );
 
+// Pre-game loading screen. Built at module scope so window.Naija can
+// expose it; boot() shows it and waits for the player's tap.
+const preLoader = new PreLoader();
+
 // Debug handle from the browser console:
 //   Naija.time.setHours(18.4)   - jump to sunset
 //   Naija.player.respawn(20, 20)
@@ -165,6 +170,7 @@ window.Naija = {
   playerState: playerState,
   statsHUD: statsHUD,
   miniMap: miniMap,
+  preLoader: preLoader,
 };
 
 /* -------------------------------------------------------------------------- */
@@ -394,7 +400,22 @@ function frame(now) {
 /* Boot                                                                        */
 /* -------------------------------------------------------------------------- */
 
-function boot() {
+async function boot() {
+  // Hide existing overlay during preload
+  const existingOverlay =
+    document.getElementById('overlay');
+  if (existingOverlay) {
+    existingOverlay.style.display = 'none';
+  }
+
+  // Show preloader — player must tap first
+  await preLoader.show();
+
+  // Restore overlay after tap
+  if (existingOverlay) {
+    existingOverlay.style.display = '';
+  }
+
   renderer.resize();
   renderer.updateEnvironment(time.environment(), player.position);
 
